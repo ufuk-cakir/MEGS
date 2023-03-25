@@ -167,7 +167,13 @@ class Galaxy():
                 #Create the mass weighted field image.
                 weights = self.get_field(field)*masses #mass weighted weights
                 weights_img= self._render_image_2D(weights) 
-                image = weights_img/mass_img
+                
+                #Avoid division by zero: If the mass image value is zero, return the weights image value
+                mask = np.where(mass_img != 0)
+                # image = np.zeros_like(mass_img)
+                image = weights_img.copy()
+                image[mask] = weights_img[mask]/mass_img[mask]
+                # image = weights_img/mass_img
                 
         else:
             #Not mass weighted. Return the field image

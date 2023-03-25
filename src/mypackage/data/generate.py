@@ -1,6 +1,7 @@
 '''This file contains the functions to generate the galaxy data and save it to the HDF5 file.
 '''
-
+import json
+import argparse
 import h5py
 import os
 import numpy as np
@@ -72,7 +73,7 @@ def _create_data_structure(n_galaxies, image_res,galaxy_parameters, particle_typ
 
 
 
-def _calculate_images(simulation,halo_ids,fields,plot_factor, image_res, path="./",norm_params = {},**kwargs):
+def _calculate_images(simulation,halo_ids,fields,plot_factor, image_res, path="./",norm_params = {},resume = None,**kwargs):
     '''Calculates the images for the galaxies and saves them to the HDF5 file. Needs to be run after _create_data_structure() method.
     
     Parameters
@@ -111,27 +112,39 @@ def _calculate_images(simulation,halo_ids,fields,plot_factor, image_res, path=".
         # Check if the "index_position" attribute exists
         if "index_position" in f.attrs:
             index_position = f.attrs["index_position"]
+            # Check if the index position is valid
+            if index_position > n_galaxies:
+                raise ValueError(f"Index position {index_position} is greater than the number of galaxies {n_galaxies}")        
             
-            # Ask the user if they want to continue from the last index position
-            if input(f"Continue from index position {index_position}? (y/n): ") == "y":
-                # Check if the index position is valid
-                if index_position > n_galaxies:
-                    raise ValueError(f"Index position {index_position} is greater than the number of galaxies {n_galaxies}")        
+           # Check if resume flag is set
+            if resume is None:
+                # Ask the user if they want to continue from the last index position
+                if input(f"Continue from index position {index_position}? (y/n): ") == "y":
+                    resume = True
+                else:
+                    resume = False
+
+            # Set the index position to the last index position if the user wants to continue
+            if resume:
+                index_position = f.attrs["index_position"]
             else:
                 # Reset the index position since the user does not want to continue from the last index position 
                 index_position = 0
+            
         else:
             #Attribute does not exist so set the index position to 0 to start the loop from the beginning
             index_position = 0
             
-            
+        # Save the index position to the HDF5 file    
         f.attrs["index_position"] = index_position
+        print(f"Starting to calculate data from index position {index_position} out of {n_galaxies} galaxies.")
         # Loop through the galaxies
-        for index, haloid in tqdm(enumerate(halo_ids[index_position:])):
+        for index, haloid in enumerate(tqdm(halo_ids[index_position:])):
             # Create the galaxy object
             kwargs["halo_id"] = haloid
             
-            g = Galaxy(simulation= simulation, **kwargs) 
+            #TODO: This loads the particle type specified in the kwargs. Need to change this to load all particle types
+            g = Galaxy(simulation= simulation, **kwargs)  
             
             # Get the galaxy parameters
             for parameter in f["Galaxies/Attributes"].keys():
@@ -156,11 +169,12 @@ def _calculate_images(simulation,halo_ids,fields,plot_factor, image_res, path=".
         print("Images calculated and saved to HDF5 file: ", os.path.join(path,"galaxy_data.hdf5"))
         
         
-      
-def generate_data(simulation, halo_ids, fields, plot_factor, image_res, galaxy_parameters, particle_types, path="./", **kwargs):
+ #TODO: Maybe specify all the parameters in a seperate JSON file and load them in the function. Maybe more convenient for the user.     
+def generate_data(simulation, halo_ids, fields, plot_factor, image_res, galaxy_parameters, particle_types, overwrite = None,resume = None,path="./", **kwargs):
     '''Generates the data for the galaxies and saves it to an HDF5 file.
     
-    This method creates the HDF5 file data structure and saves the galaxy parameters and images to the file. 
+    This method creates the HDF5 file data structure and saves the galaxy parameters and images to the file. The images are calculated using the get_image() method of the Galaxy class.
+    This is later used to build the morphology model.
     
     Parameters
     ----------
@@ -209,52 +223,138 @@ def generate_data(simulation, halo_ids, fields, plot_factor, image_res, galaxy_p
     >>> galaxy_parameters = ["mass", "halo_id"] # List of galaxy parameters to be saved
     >>> generate_data(simulation, halo_ids, fields, plot_factor, img_res, galaxy_parameters, particle_types, path)
     
+    This will create the HDF5 file and save the galaxy parameters and images to the file in the following structure:
     
+        ./galaxy_data.hdf5
+        ├── Galaxies: Group
+        │   ├── Attributes: Group
+        │   │   ├── mass: (10,)
+        │   │   └── halo_id: (10,)
+        │   └── Particles
+        │       ├── gas
+        │       │   └── Images
+        │       │       ├── Masses: (10, 64, 64)
+        │       │       ├── GFM_Metallicity: (10, 64, 64)
+        │       │       └── GFM_StellarFormationTime: (10, 64, 64)
+        │       └── stars
+        │           └── Images
+        │               ├── Masses: (10, 64, 64)
+        │               ├── GFM_Metallicity: (10, 64, 64)
+        │               └── GFM_StellarFormationTime: (10, 64, 64)
+        └── Attributes
+            └── index_position
+
+        
+        You can access the datasets by hand using the following code:
+        >>> import h5py
+        >>> f = h5py.File("./galaxy_data.hdf5", "r")
+        >>> f["Galaxies/Attributes/mass"][0]
+        1.0e+12
+        >>> img = f["Galaxies/Particles/gas/Images/Masses"][0] # First galaxy, gas particles, Masses field image 
+        >>> img.shape
+        (64, 64)
+        >>> f.close()
     
+        This data file is later used to build the morphology model.
     '''
     n_galaxies = len(halo_ids)
-    # Create the HDF5 file and the data structure
-    _create_data_structure(n_galaxies=n_galaxies, image_res=image_res, galaxy_parameters=galaxy_parameters, particle_types=particle_types, fields=fields, path=path)
     
-    # Calculate the images
-    _calculate_images(simulation, halo_ids, fields, plot_factor, image_res, path, **kwargs)
-        
-        
-    
-
-    
-    
-    
-# Function to load the data of a specific galaxy
-def load_single_galaxy_data(path, galaxy_index):
-    '''Loads the data of a specific galaxy from the HDF5 file created using generate_data() method.
-    
-    Parameters
-    ----------
-    path: str
-        Path to the HDF5 file
-    galaxy_index: int
-        Index of the galaxy to load the data for. The index is the position of the galaxy in the HDF5 file.
-    
-    Returns
-    -------
-    galaxy_data: dict
-        Dictionary of the galaxy data. The keys are the galaxy parameters and particle types.
-        e.g. {"mass": 1e12, "halo_id": 1234, "stars": {"Masses":image, "GFM_Metallicity":image, "GFM_StellarFormationTime":image}}
-    '''
-    #Check if the HDF5 file exists
+    # If File does not exist, create it
     if not os.path.exists(os.path.join(path,"galaxy_data.hdf5")):
-        raise FileNotFoundError(f"{path} does not exist.")
-    
-    
-    # Open the HDF5 file in "r" mode
-    with h5py.File(os.path.join(path,"galaxy_data.hdf5"), "r") as f:
-        # Get the galaxy parameters
-        galaxy_data = {parameter:f["Galaxies/Attributes"][parameter][galaxy_index] for parameter in f["Galaxies/Attributes"].keys()}
+        # Create the HDF5 file and the data structure
+        _create_data_structure(n_galaxies=n_galaxies, image_res=image_res, galaxy_parameters=galaxy_parameters, particle_types=particle_types, fields=fields, path=path)
+    else:
+        #Check if overwrite Flag is set
+        if overwrite is None:
+            # Ask if the file should be overwritten
+            if input(f"The file {os.path.join(path,'galaxy_data.hdf5')} already exists. Do you want to overwrite it? (y/n)") == "y":
+                overwrite = True
+        if overwrite is True:
+            _create_data_structure(n_galaxies=n_galaxies, image_res=image_res, galaxy_parameters=galaxy_parameters, particle_types=particle_types, fields=fields, path=path)
+        else:
+            print("Loading the existing file: ", os.path.join(path,"galaxy_data.hdf5"))
+    # Calculate the images
+    _calculate_images(simulation, halo_ids, fields, plot_factor, image_res, path, resume=resume,**kwargs)
         
-        # Get the particle data
-        for particle_type in f["Galaxies"]["Particles"].keys():
-            # Get the particle data
-            galaxy_data[particle_type] = {field:f["Galaxies"]["Particles"][particle_type]["Images"][field][galaxy_index] for field in f["Galaxies"]["Particles"][particle_type]["Images"].keys()}
-            
-    return galaxy_data
+        
+
+
+
+
+
+
+
+
+
+
+
+def main():
+    # Parse the command line arguments
+    parser = argparse.ArgumentParser(description='Generate the data for the morphology model.')
+    parser.add_argument("--config," "-c", help="Path to the configuration file", type=str, default="./config.json", required=True,dest="config")
+    parser.add_argument("--overwrite," "-ow", help="Flag wheter to overwrite existing galaxy data.", type=bool,dest="overwrite")
+    parser.add_argument("--resume," "-r", help="Flag wheter to resume at the last index position in the loop.", type=bool,dest="resume")
+    args = parser.parse_args()
+    #Load the configuration file
+    try: 
+        with open(args.config) as f:
+            config = json.load(f)
+    except:
+        raise ImportError("Could not load the configuration file: ", args.config)
+
+
+    # Check if all of the required parameters are in the configuration file	
+    for key in ["simulation", "halo_ids", "fields", "plot_factor", "path", "img_res", "galaxy_parameters", "particle_types", "GalaxyArgs"]:
+        if key not in config:
+            raise ImportError("The configuration file does not contain the required parameter: ", key)
+        
+    # Check if halo_ids in the configuration file is a list
+    if isinstance(config["halo_ids"], list) or isinstance(config["halo_ids"], np.ndarray) or isinstance(config["halo_ids"], int):
+        halo_ids = config["halo_ids"] # List of halo IDs to calculate the images for
+    
+    # If halo_ids is a string, try loading the halo IDs from the file
+    elif isinstance(config["halo_ids"], str):
+        #Check if the file exists
+        if not os.path.isfile(config["halo_ids"]):
+            raise ImportError("The file does not exist: ", config["halo_ids"])
+        # Check if the file is a text file
+        if config["halo_ids"].endswith(".txt"):
+            try:
+                halo_ids = np.loadtxt(config["halo_ids"], dtype=int)
+            except:
+                raise ImportError("Could not load the halo IDs from the file: ", config["halo_ids"])
+        elif config["halo_ids"].endswith(".hdf5"):
+            try:
+                f = h5py.File(config["halo_ids"], "r")
+                halo_ids = f["halo_ids"][:]
+                f.close()
+            except:
+                raise ImportError("Could not load the halo IDs from the file: ", config["halo_ids"])
+        elif config["halo_ids"].endswith(".npy"):
+            try:
+                halo_ids = np.load(config["halo_ids"])
+            except:
+                raise ImportError("Could not load the halo IDs from the file: ", config["halo_ids"])
+    else:
+        raise ImportError("The halo_ids parameter in the configuration file should be a list/np.ndarray/int or a string as a path to a file. Suppoorted file formats are: .txt, .hdf5, .npy")
+    
+    # Set up the parameters to call the generate_data() method
+    try:
+        simulation = config["simulation"] # Simulation name, used to initialise the Galaxy class
+        particle_types = config["particle_types"]
+        img_res = config["img_res"]
+        plot_factor = config["plot_factor"]
+        path = config["path"] # Path where the HDF5 file will be saved
+        galaxy_parameters = config["galaxy_parameters"] # List of galaxy parameters to be saved
+        fields = config["fields"] # Dictionary of fields to be saved
+        kwargs = config["GalaxyArgs"] # Keyword arguments passed to the Galaxy class
+    except:
+        raise ImportError("Could not load the parameters from the configuration file. Please check the documentation for the correct format.")
+    
+    print("Config file loaded successfully. Generating the data...")
+    # Call the generate_data() method
+    generate_data(simulation = simulation, halo_ids = halo_ids, fields = fields, plot_factor = plot_factor, 
+                    image_res = img_res, galaxy_parameters = galaxy_parameters, particle_types = particle_types, path = path, overwrite= args.overwrite, resume = args.resume,**kwargs)
+
+if __name__ ==  "__main__":
+    main()

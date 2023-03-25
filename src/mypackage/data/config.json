@@ -1,0 +1,29 @@
+{
+    "simulation": "IllustrisTNG",
+    "particle_types": ["stars"],
+    "galaxy_parameters": ["mass", "halo_id"],
+    "img_res": [64,64],
+    "plot_factor": 10,
+    "path": "./",
+    "halo_ids": "/export/home/ucakir/galaxy-morphology/experiments/data/deeplearn_ids.npy",
+    "fields": 
+                {
+                    "Masses":
+                            {   "mass_weighted":false,
+                                "normed":true
+                            },
+                    "GFM_Metallicity":
+                            {   "mass_weighted":true,
+                                "normed":true
+                            },
+                    "GFM_StellarFormationTime":
+                            {   "mass_weighted":true,
+                                "normed":true
+                            }
+                },
+    "GalaxyArgs": 
+                {"base_path": "/export/data/ucakir/TNG100/TNG100-1/output/",
+                "snapshot":99,
+                "particle_type":"stars"        
+                }
+}
