@@ -3,22 +3,22 @@
     "particle_types": ["stars"],
     "galaxy_parameters": ["mass", "halo_id"],
     "img_res": [64,64],
-    "plot_factor": 10,
+    "plot_factor": 5,
     "path": "./",
-    "halo_ids": "/export/home/ucakir/galaxy-morphology/experiments/data/deeplearn_ids.npy",
+    "halo_ids": "/export/home/ucakir/MEGS/MEGS/src/mypackage/data/deep_ids_wihtout_corrupt.npy",
     "fields": 
                 {
                     "Masses":
                             {   "mass_weighted":false,
-                                "normed":true
+                                "normed":false
                             },
                     "GFM_Metallicity":
                             {   "mass_weighted":true,
-                                "normed":true
+                                "normed":false
                             },
                     "GFM_StellarFormationTime":
                             {   "mass_weighted":true,
-                                "normed":true
+                                "normed":false
                             }
                 },
     "GalaxyArgs": 

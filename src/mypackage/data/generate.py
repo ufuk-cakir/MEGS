@@ -270,6 +270,7 @@ def generate_data(simulation, halo_ids, fields, plot_factor, image_res, galaxy_p
             if input(f"The file {os.path.join(path,'galaxy_data.hdf5')} already exists. Do you want to overwrite it? (y/n)") == "y":
                 overwrite = True
         if overwrite is True:
+            print("Overwriting the existing file: ", os.path.join(path,"galaxy_data.hdf5"))
             _create_data_structure(n_galaxies=n_galaxies, image_res=image_res, galaxy_parameters=galaxy_parameters, particle_types=particle_types, fields=fields, path=path)
         else:
             print("Loading the existing file: ", os.path.join(path,"galaxy_data.hdf5"))
@@ -335,6 +336,7 @@ def main():
                 halo_ids = np.load(config["halo_ids"])
             except:
                 raise ImportError("Could not load the halo IDs from the file: ", config["halo_ids"])
+        print("Loaded the halo IDs from the file: ", config["halo_ids"])
     else:
         raise ImportError("The halo_ids parameter in the configuration file should be a list/np.ndarray/int or a string as a path to a file. Suppoorted file formats are: .txt, .hdf5, .npy")
     
@@ -351,7 +353,7 @@ def main():
     except:
         raise ImportError("Could not load the parameters from the configuration file. Please check the documentation for the correct format.")
     
-    print("Config file loaded successfully. Generating the data...")
+    print("Config loaded successfully.")
     # Call the generate_data() method
     generate_data(simulation = simulation, halo_ids = halo_ids, fields = fields, plot_factor = plot_factor, 
                     image_res = img_res, galaxy_parameters = galaxy_parameters, particle_types = particle_types, path = path, overwrite= args.overwrite, resume = args.resume,**kwargs)

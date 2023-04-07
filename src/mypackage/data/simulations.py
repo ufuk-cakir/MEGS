@@ -84,7 +84,7 @@ class IllustrisTNG():
         self.halfmassrad_DM= self.subhalo['SubhaloHalfmassRadType'][il.util.partTypeNum('DM')]
         self.particles = il.snapshot.loadSubhalo(self.base_path, self.snapshot, self.halo_id, self.particle_type)
     
-        if self.particle_type == "stars":
+        if self.particle_type == "stars": 
             # Get only real stars, not wind particles
             self.real_star_mask = np.where(self.particles["GFM_StellarFormationTime"]>0)[0]
             self.hsml = self.particles["StellarHsml"]
