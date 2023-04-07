@@ -87,7 +87,7 @@ class IllustrisTNG():
         if self.particle_type == "stars": 
             # Get only real stars, not wind particles
             self.real_star_mask = np.where(self.particles["GFM_StellarFormationTime"]>0)[0]
-            self.hsml = self.particles["StellarHsml"]
+            self.hsml = self.particles["StellarHsml"][self.real_star_mask]
         else:
             self.real_star_mask = np.ones(len(self.particles["Coordinates"]), dtype=bool)
             #Is this correct? Is this the smoothing length used for visualization?
