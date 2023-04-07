@@ -359,7 +359,7 @@ def get_horizontal_angle(img):
     return np.arctan2(*fit.components_[0])
 
 
-def horizontal_rotation(coordinates, halfmassrad,plotfactor=10):
+def horizontal_rotation(img, coordinates, halfmassrad,plotfactor=10):
     '''Rotate the galaxy to be horizontal.
     
     The galaxy is rotated to be horizontal using the angle of the galaxy bar in the image calculated with the PCA.
@@ -367,6 +367,8 @@ def horizontal_rotation(coordinates, halfmassrad,plotfactor=10):
     
     Parameters
     ----------
+    img : numpy.array
+        The image of the galaxy.
     coordinates : numpy.array
         The coordinates of the particles.
     halfmassrad : float
@@ -380,7 +382,7 @@ def horizontal_rotation(coordinates, halfmassrad,plotfactor=10):
         The rotated coordinates of the particles.
     '''
     #First Create Dummy hist
-    hist, xedges, yedges = np.histogram2d(coordinates[:,0], coordinates[:,1], bins=(128,128), range =((-halfmassrad*plotfactor,halfmassrad*plotfactor),(-halfmassrad*plotfactor,halfmassrad*plotfactor)))
+    hist = clip_image(img, lower = 0.9, upper = 1.0)
     angle = get_horizontal_angle(hist)
     
     #Rotate

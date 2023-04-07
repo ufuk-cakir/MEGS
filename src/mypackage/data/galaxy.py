@@ -53,9 +53,6 @@ class Galaxy():
         
         #Load the defined Galaxy Class
         self.galaxy_object = str_to_class(self.simulation)(**kwargs)
-        self.coordinates = self._rotate_galaxy()
-        
-        
         #Set default Atributes for the image rendering
         self.plot_factor =10
         self.res = 64
@@ -66,8 +63,22 @@ class Galaxy():
             raise AttributeError("Galaxy object does not have a smoothing length.")
         
         
+        self.coordinates = self._rotate_galaxy()
+        
+        
+        
+    def get_coordinates(self):
+        '''Get the coordinates of the particles.
+        
+        Returns
+        -------
+        numpy.array
+            The coordinates of the particles.
+        '''
+        return self.coordinates    
          
     
+      
     def _rotate_galaxy(self, _plotfactor=10):
         '''Rotate the galaxy to face-on and horizontal orientation.
         
@@ -90,7 +101,9 @@ class Galaxy():
         face_on_rotated_coords = face_on_rotation(coordinates=self.particle_coordinates,particle_masses=self.particle_masses, 
                                                         rHalf=self.halfmassrad, subhalo_pos=self.center)
         #maybe horizontal rotataion is not working properly
-        horizontal_rotated_coords = horizontal_rotation(coordinates=face_on_rotated_coords, halfmassrad=self.halfmassrad, plotfactor=_plotfactor)        
+        #Create temporary image to get the rotation angle: Maybe there is a better way to do this. Only calculating a hist does not work properly.
+        img = self._render_image_2D(field=self.particle_masses, coordinates=face_on_rotated_coords)
+        horizontal_rotated_coords = horizontal_rotation(img = img,coordinates=face_on_rotated_coords, halfmassrad=self.halfmassrad, plotfactor=_plotfactor)        
         self.rotated_flag = True
         return horizontal_rotated_coords
 
@@ -103,15 +116,19 @@ class Galaxy():
 
     #-----------------Image Rendering-----------------#
 
-    def _render_image_2D(self, field):
+    def _render_image_2D(self, field, coordinates = None, ):
         '''Image Render Module for 2D images.
         This function is called by the get_image function. It renders the image using the image2D function from the image_modules.py file.
         You can change the image rendering by implementing your own image rendering function here.
         
         For more information of the default render method see the documentation of the image2D function.
         '''
-        img = image2D(coordinates=self.coordinates, R_half=self.halfmassrad, weights=field,
+        if coordinates is not None:
+            img = image2D(coordinates=coordinates, R_half=self.halfmassrad, weights=field,
                         smoothing_length=self.smoothing_length, plot_factor=self.plot_factor, res=self.res)
+        else:
+            img= image2D(coordinates=self.coordinates, R_half=self.halfmassrad, weights=field,
+                            smoothing_length=self.smoothing_length, plot_factor=self.plot_factor, res=self.res)
         return img
     
                       
