@@ -143,3 +143,4 @@ cython_debug/
 # Data files
 *.hdf5
 *.out
+src/mypackage/data/nohup.out
