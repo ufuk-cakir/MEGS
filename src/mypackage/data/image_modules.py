@@ -382,7 +382,8 @@ def horizontal_rotation(img, coordinates, halfmassrad,plotfactor=10):
         The rotated coordinates of the particles.
     '''
     #First Create Dummy hist
-    hist = clip_image(img, lower = 0.9, upper = 1.0)
+    hist = img.copy()
+    hist = clip_image(hist, lower = 0.9, upper = 1.0)
     angle = get_horizontal_angle(hist)
     
     #Rotate
