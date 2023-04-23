@@ -1,6 +1,8 @@
 import h5py
 import numpy as np
-
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.decomposition import PCA
 
 # Helper function to print the structure of an hdf5 file
 #TODO Move this to a separate file
@@ -149,7 +151,7 @@ class DataLoader():
 
 
 
-class PCA():
+class mPCA():
     
     def __init__(self,data, particle_type = None, norm_function = None, norm_function_kwargs=None):
         # Check if data is instance of DataLoader
@@ -173,6 +175,7 @@ class PCA():
         self.data = data
         self._norm_function = norm_function
         self._norm_function_kwargs = norm_function_kwargs
+        self._IMG_ORDER = self.data._image_fields[self.particle_type]
         self._IMG_SHAPE = self.data.get_image(self.particle_type, self.data._image_fields[self.particle_type][0], index = 0).shape
         # Initialize the datamatrix to of shape (n_galaxies, 0)
         self.datamatrix = np.empty((data.get_attribute("mass").shape[0], 0)) 
@@ -221,7 +224,7 @@ class PCA():
         
         
         
-    def fit(self, n_components=None, **kwargs):
+    def fit(self, n_components=None, show_results = True,**kwargs):
         '''Fit the PCA to the datamatrix
         
         Parameters:
@@ -233,5 +236,36 @@ class PCA():
         '''
         self.pca = PCA(n_components=n_components, **kwargs)
         self.scores = self.pca.fit_transform(self.datamatrix)
-        self.eigengalaxies = self.pca.components_.reshape(self.pca.components_.shape[0], *self._IMG_SHAPE)
+        self.eigengalaxies = self.pca.components_.reshape(self.pca.components_.shape[0],len(self.data._image_fields[self.particle_type]), *self._IMG_SHAPE)
+        self.inverse_transformed_datamatrix = self.pca.inverse_transform(self.scores)
+        if show_results:
+            self.show_results()
+            
+    def show_results(self):
+        fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+        ax[0].plot(self.pca.explained_variance_ratio_)
+        ax[0].set_xlabel("Component")
+        ax[0].set_ylabel("Explained variance ratio")
+        ax[1].plot(np.cumsum(self.pca.explained_variance_ratio_))
+        ax[1].set_xlabel("Component")
+        ax[1].set_ylabel("Cumulative explained variance ratio")
+        plt.show()
+
         
+        #Loop over different image fields
+        for index,field in enumerate(self.data._image_fields[self.particle_type]):
+
+            #Plot the eigengalaxies in a grid
+            #get the number of rows and columns
+        
+            rows = int(np.ceil(np.sqrt(self.pca.n_components)))
+            cols = int(np.ceil(self.pca.n_components/rows))
+            fig, ax = plt.subplots(rows, cols, figsize=(cols*3, rows*3))
+            for i in range(rows):
+                for j in range(cols):
+                    if i*cols+j < self.pca.n_components:
+                        ax[i, j].imshow(self.eigengalaxies[i*cols+j][index])
+                        ax[i, j].set_title(f"Component {i*cols+j}")
+                        ax[i, j].axis("off")
+            fig.suptitle(f"Eigengalaxies:{field}")
+            plt.show()
