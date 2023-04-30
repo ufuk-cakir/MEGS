@@ -20,7 +20,7 @@ import numpy as np
 import sys
 
 
-from image_modules import image2D, norm, face_on_rotation, horizontal_rotation
+from image_modules import image2D,image3D, norm, face_on_rotation, horizontal_rotation
 
 
 def str_to_class(classname):
@@ -123,16 +123,74 @@ class Galaxy():
         
         For more information of the default render method see the documentation of the image2D function.
         '''
+        
+        # Check if all parameters have the same length
         if coordinates is not None:
+            if len(coordinates) != len(self.smoothing_length) or len(coordinates) != len(field) or len(self.smoothing_length) != len(field):
+                raise ValueError("Coordinates, smoothing length and field must have the same length.")
             img = image2D(coordinates=coordinates, R_half=self.halfmassrad, weights=field,
                         smoothing_length=self.smoothing_length, plot_factor=self.plot_factor, res=self.res)
         else:
+            if len(self.coordinates) != len(self.smoothing_length) or len(self.coordinates) != len(field) or len(self.smoothing_length) != len(field):
+                raise ValueError("Coordinates, smoothing length and field must have the same length.")
+            
             img= image2D(coordinates=self.coordinates, R_half=self.halfmassrad, weights=field,
                             smoothing_length=self.smoothing_length, plot_factor=self.plot_factor, res=self.res)
         return img
+    def _render_image_3D(self, field, coordinates = None, ):
+        '''Image Render Module for 3D images.
+        This function is called by the get_image function. It renders the image using the image3D function from the image_modules.py file.
+        You can change the image rendering by implementing your own image rendering function here.
+        
+        For more information of the default render method see the documentation of the image3D function.
+        '''
+        
+        # Check if all parameters have the same length
+        if coordinates is not None:
+            if len(coordinates) != len(self.smoothing_length) or len(coordinates) != len(field) or len(self.smoothing_length) != len(field):
+                raise ValueError("Coordinates, smoothing length and field must have the same length.")
+            img = image3D(coordinates=coordinates, R_half=self.halfmassrad, weights=field,
+                        smoothing_length=self.smoothing_length, plot_factor=self.plot_factor, res=self.res)
+        else:
+            if len(self.coordinates) != len(self.smoothing_length) or len(self.coordinates) != len(field) or len(self.smoothing_length) != len(field):
+                raise ValueError("Coordinates, smoothing length and field must have the same length.")
+            
+            img= image3D(coordinates=self.coordinates, R_half=self.halfmassrad, weights=field,
+                            smoothing_length=self.smoothing_length, plot_factor=self.plot_factor, res=self.res)
+        return img
     
-                      
-    def get_image(self, field, mass_weighted = True,normed= False, res = None, plotfactor = None,**kwargs):
+    def render_image(self, field, dim, coordinates = None):
+        '''Render the image of a given field.
+        This function is called by the get_image function. It renders the image using the _render_image_2D or _render_image_3D function based on the dimension of the image.
+        You can change the image rendering by implementing your own image rendering function in the _render_image_2D or _render_image_3D function.
+
+        Parameters
+        ----------
+        field : str
+            The field to be rendered. Can be any field that is available in the snapshot. Used to call the get_field function of the galaxy object.
+        dim : int
+            The dimension of the image. Can be either 2 or 3.
+        coordinates : numpy.array, optional
+            The coordinates of the particles. If not given, the coordinates of the galaxy object are used. The default is None.
+
+        Raises
+        ------
+        ValueError
+            If the dimension is not 2 or 3.
+
+        Returns
+        -------
+        numpy.array
+            The rendered image.
+        
+        '''
+        if dim == 2:
+            return self._render_image_2D(field, coordinates)
+        elif dim == 3:
+            return self._render_image_3D(field, coordinates)
+        else:
+            raise ValueError("The dimension must be either 2 or 3.")            
+    def get_image(self, field, mass_weighted = True,normed= False, res = None, plotfactor = None,dim = 2,**kwargs):
         '''Get the image of a given field.
 
         This function renders the image of a given field, which can be any field that is available in the snapshot and can be accessed by the get_field function of the galaxy object.
@@ -152,6 +210,8 @@ class Galaxy():
             The resolution of the image. The default is None. If None, the resolution is set to the default value of the Galaxy class, which is 64.
         plotfactor : int, optional
             The plotfactor used to scale the image. The default is None. If None, the plotfactor is set to the default value of the Galaxy class, which is 10.
+        dim : int, optional
+            The dimension of the image. The default is 2. If 2, the image is rendered as a 2D image. If 3, the image is rendered as a 3D image.
         **kwargs : dict
             Additional arguments for the normalization function. This is only used if normed is True. For more information see the documentation of the norm function defined in the image_modules.py file.
         
@@ -171,19 +231,23 @@ class Galaxy():
             self.res = res
         if plotfactor is not None:
             self.plot_factor = plotfactor
+            
+        # Check if dim is 2 or 3
+        if dim not in [2,3]:
+            raise ValueError("dim must be 2 or 3. This is the dimension of the image.")
         
         
         if mass_weighted:
             #First create the mass image
             masses = self.get_field("Masses")
-            mass_img = self._render_image_2D(masses)
+            mass_img = self.render_image(masses, dim)
             if field == "Masses":
                 #If the field is mass, return the mass image
                 image = mass_img
             else:
                 #Create the mass weighted field image.
                 weights = self.get_field(field)*masses #mass weighted weights
-                weights_img= self._render_image_2D(weights) 
+                weights_img= self.render_image(weights, dim) 
                 
                 #Avoid division by zero: If the mass image value is zero, return the weights image value
                 mask = np.where(mass_img != 0)
@@ -195,7 +259,7 @@ class Galaxy():
         else:
             #Not mass weighted. Return the field image
             weights = self.get_field(field)
-            image = self._render_image_2D(weights)
+            image = self.render_image(weights, dim)
         
         if normed:
             image = norm(image, **kwargs)

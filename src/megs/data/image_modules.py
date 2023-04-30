@@ -18,6 +18,54 @@ from sklearn.decomposition import PCA
 
 
 
+def image3D(coordinates, R_half, weights, smoothing_length, plot_factor = 10, res = 64):
+    ''' Image Render Module for 3D images.
+    
+    This function renders a 3D image of the given field. The image is rendered using the scatter function from the swiftsimio.visualisation.volume_render module.
+    The image is calculated in plot_factor*R_half. The image is res x res x res pixels.
+    
+    Parameters
+    ----------
+    coordinates : numpy.array
+        The coordinates of the particles. The Galaxy should be centered at the origin and already rotated to the xy-plane
+    R_half : float
+        The half mass radius of the galaxy used to set the plot range.
+    weights : numpy.array
+        The weights of the particles. This is the field that is rendered.
+    smoothing_length : numpy.array
+        The smoothing length of the particles used for the SPH kernel.    
+    plot_factor : float
+        The factor by which the image is zoomed in. The image is calculated for -plot_factor*R_half < x,y,z < plot_factor*R_half
+    res : int
+        The resolution of the image. The image is res x res pixels. The default is 64. 
+
+    Returns
+    -------
+    numpy.array
+        The rendered image.
+    
+    '''
+    
+    plot_range = plot_factor*R_half
+    
+    x = coordinates[:,0].copy()
+    y = coordinates[:,1].copy()
+    z = coordinates[:,2].copy()
+    
+    m =  weights
+    
+    h = smoothing_length.copy()
+    
+    #Transform Particles s.t -factor*r_halfmassrad < x <factor*r_halfmassrad -> 0 < x <1
+    x = x/(2*plot_range) +1/2  
+    y = y/(2*plot_range) +1/2
+    z = z/(2*plot_range) +1/2
+
+    h = h/(2*plot_range)
+    
+    SPH_hist = scatter3D(x=x, y = y,z = z,h = h, m = m ,res= res)
+        
+    return(SPH_hist)
 def image2D(coordinates, R_half, weights, smoothing_length, plot_factor = 10, res = 64):
     ''' Image Render Module for 2D images.
     

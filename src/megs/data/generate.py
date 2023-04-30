@@ -7,7 +7,7 @@ import os
 import numpy as np
 from tqdm import tqdm
 
-from galaxy import Galaxy
+from .galaxy import Galaxy
 
 
 def _create_data_structure(n_galaxies, image_res,galaxy_parameters, particle_types, fields, path="./"):

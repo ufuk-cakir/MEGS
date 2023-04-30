@@ -36,27 +36,35 @@ Note that the class name should be the same as the simulation name, since this i
 
 import numpy as np
 from astropy.cosmology import Planck15 as cosmo
-import illustris_python as il 
 
+try:
+    import illustris_python as il 
+except ImportError:
+    print("IllustrisTNG not installed. Please install it or define other simulations in simulations.py.")
+
+
+
+_h = cosmo.H(0).value/100 #Hubble constant
+_age = cosmo.age(0).value #Age of the universe in Gyr
 
 def scale_to_physical_units(x, field):
     '''get rid of the Illustris units.'''
 
     if field == 'Masses':
-        return x * 1e10 / (cosmo.H(0).value)
+        return x * 1e10 / _h
 
     elif field == 'Coordinates':
-        return x / (cosmo.H(0).value)
+        return x / _h
 
     elif field == 'SubfindHsml':
-        return x / (cosmo.H(0).value)
+        return x / _h
 
     elif field == 'SubfindDensity':
-        return x * 1e10 * (cosmo.H(0).value) * (cosmo.H(0).value)
+        return x * 1e10 * _h * _h
 
     elif field == 'GFM_StellarFormationTime':
         #Calculates Age of Stars
-        return (cosmo.age(0).value-cosmo.age(1 / x - 1).value)*1e9 #Gyr
+        return (_age-cosmo.age(1 / x - 1).value)*1e9 #Gyr
     elif field =="GFM_Metallicity":
         return(x/0.0127) #Solar Metallicity
     else:
@@ -116,4 +124,7 @@ class IllustrisTNG():
         >>> galaxy.get_field("GFM_StellarFormationTime")
 
         '''
+        # Check if the field is in the snapshot
+        if field not in self.particles.keys():
+            raise ValueError("Field {} not in snapshot.".format(field))
         return scale_to_physical_units(self.particles[field][self.real_star_mask], field)
