@@ -438,3 +438,27 @@ def horizontal_rotation(img, coordinates, halfmassrad,plotfactor=10):
     horizontal_rotation_matrix = calc_rotation_matrix(-angle)
     rotated_coordinates = np.dot(horizontal_rotation_matrix, coordinates.T).T
     return rotated_coordinates
+
+
+
+#------------- Visualisation -------------
+import plotly.graph_objects as go
+def volume(hist ,opacity = .1, isomin = 0, isomax = None, surface_count = 30):
+    if isomax is None: isomax = hist.max()
+    data_hist =hist.copy()
+    xx, yy, zz = np.where(data_hist != 0)
+    s = data_hist[xx,yy,zz]
+    fig = go.Figure(data=go.Volume(
+        x=xx,
+        y=yy,
+        z=zz,
+        value=s,
+        isomin=isomin,
+        isomax=isomax,
+        opacity=opacity, # needs to be small to see through all surfaces
+        surface_count=surface_count,# needs to be a large number for good volume rendering
+        ))
+    fig.update_layout(scene_xaxis_showticklabels=False,
+                  scene_yaxis_showticklabels=False,
+                  scene_zaxis_showticklabels=False)
+    fig.show()

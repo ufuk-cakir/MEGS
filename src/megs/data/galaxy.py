@@ -13,13 +13,13 @@ Example
 >>> galaxy.mass # Get the mass of the galaxy
 """
 
-from .simulations import *  # Import all Galaxy Classes of the simulations
+from simulations import *  # Import all Galaxy Classes of the simulations
 
 import numpy as np
 import sys
 
 
-from .image_modules import image2D, image3D, norm, face_on_rotation, horizontal_rotation
+from image_modules import image2D, image3D, norm, face_on_rotation, horizontal_rotation
 
 
 def str_to_class(classname):

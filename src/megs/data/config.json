@@ -2,10 +2,11 @@
     "simulation": "IllustrisTNG",
     "particle_types": ["stars"],
     "galaxy_parameters": ["mass", "halo_id"],
-    "img_res": [64,64],
+    "img_res": 64,
     "plot_factor": 5,
     "path": "./",
-    "halo_ids": "/export/home/ucakir/MEGS/MEGS/src/mypackage/data/deep_ids_wihtout_corrupt.npy",
+    "halo_ids": "/export/home/ucakir/MEGS/MEGS/src/megs/data/deep_ids_wihtout_corrupt.npy",
+    "dim": null,
     "fields": 
                 {
                     "Masses":
@@ -27,3 +28,4 @@
                 "particle_type":"stars"        
                 }
 }
+

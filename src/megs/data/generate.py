@@ -7,19 +7,18 @@ import os
 import numpy as np
 from tqdm import tqdm
 
-from .galaxy import Galaxy
+from galaxy import Galaxy
 
 
-def _create_data_structure(n_galaxies, image_res,galaxy_parameters, particle_types, fields, path="./"):
+def _create_data_structure(n_galaxies, image_res,galaxy_parameters, particle_types, fields, path="./", dim = None):
     '''Creates the HDF5 data structure for the galaxy data
-    #TODO: Add the ability to save the images as a 3D array
     #TODO: Add the ability to set different fields for different particle types
     Parameters
     ----------
     n_galaxies: int
         Number of galaxies to be saved
-    image_res: tuple
-        Image resolution (x,y). #TODO: Change to be flexible (x,y,z) for 3D images
+    image_res: int
+        Image resolution. The images are either 2D or 3D arrays with shape (image_res, image_res) or (image_res, image_res, image_res), depending on the dim argument.
     galaxy_parameters: list
         List of galaxy parameters to be saved. These need to be attributes of the Galaxy class and are saved in the "Galaxies/Attributes" group.
     particle_types: list
@@ -29,8 +28,9 @@ def _create_data_structure(n_galaxies, image_res,galaxy_parameters, particle_typ
         The fields are the same for all particle types and are saved in the "Images" group. The value is used to calculate the image later. #TODO maybe change this
     path: str
         Path to the HDF5 file
-    
-    
+    dim: int
+        Dimension of the images. If None, both 2D and 3D images are saved. If 2, only 2D images and if 3, only 3D images are saved.
+
     Example:
     --------
     >>> create_data_structure(1000, (64,64), galaxy_paramters=["mass","halo_id"], particle_types =["stars"], {"Masses":False, "GFM_Metallicity":False, "GFM_StellarFormationTime":True})
@@ -44,11 +44,23 @@ def _create_data_structure(n_galaxies, image_res,galaxy_parameters, particle_typ
         Particles
             stars
                 Images
-                    Masses: (1000,64,64)
-                    GFM_Metallicity: (1000,64,64)
-                    GFM_StellarFormationTime: (1000,64,64)
+                    dim2
+                        Masses: (1000,64,64)
+                        GFM_Metallicity: (1000,64,64)
+                        GFM_StellarFormationTime: (1000,64,64)
+                    dim3
+                        Masses: (1000,64,64,64)
+                        GFM_Metallicity: (1000,64,64,64)
+                        GFM_StellarFormationTime: (1000,64,64,64)
+
     ---------------------------------------------------------
     '''
+    # Check if dim is valid
+    if dim not in [None,2,3]:
+        raise ValueError("dim should be either None, 2 or 3.")
+    if dim is None:
+        # If dim is None, save both 2D and 3D images
+        dim = [2,3]
     # Open the HDF5 file in "w" mode to create a new file
     with h5py.File(os.path.join(path, "galaxy_data.hdf5"), "w") as f:
         # Create the Galaxies group
@@ -66,14 +78,26 @@ def _create_data_structure(n_galaxies, image_res,galaxy_parameters, particle_typ
             # Create the Images group
             images_group = particle_type_group.create_group("Images")
             
-            # Create the datasets for the images
-            for field in fields:
-                images_group.create_dataset(field, shape=(n_galaxies, *image_res), maxshape=(None, None,None))
+            # Create the dim2 and dim3 groups
+            for d in dim:
+                dim_group = images_group.create_group(f"dim{d}")
+
+                # Create the datasets for the fields
+                for field in fields:
+                    # Determine the shape of the dataset
+                    if d == 2:
+                        shape = (n_galaxies, image_res, image_res)
+                        maxshape = (None, None, None)
+                    if d == 3:
+                        shape = (n_galaxies, image_res, image_res, image_res)
+                        maxshape = (None, None, None, None)
+                    dim_group.create_dataset(field, shape=shape, maxshape=maxshape)
+            
                 
 
 
 
-def _calculate_images(simulation,halo_ids,fields,plot_factor, image_res, path="./",norm_params = {},resume = None,**kwargs):
+def _calculate_images(simulation,halo_ids,fields,plot_factor, image_res, path="./",resume = None,**kwargs):
     '''Calculates the images for the galaxies and saves them to the HDF5 file. Needs to be run after _create_data_structure() method.
     
     Parameters
@@ -96,6 +120,8 @@ def _calculate_images(simulation,halo_ids,fields,plot_factor, image_res, path=".
         For the halfmass_radius only the particle type specified in the particle_type argument are used.
     path: str
         Path to the HDF5 file to save the data to. This file should be created using create_data_structure() method.
+    resume: int, default=None
+        Flag to resume the calculation from the last halo ID. If None, the calculation starts from the first halo ID in the list. 
     **kwargs: dict
         Keyword arguments passed to the Galaxy class. Halo ID and particle type are overwritten in the loop.
         e.g. {"base_path":basePath,"halo_id":0,"particle_type": "stars", "snapshot":99} for IllustrisTNG
@@ -155,12 +181,14 @@ def _calculate_images(simulation,halo_ids,fields,plot_factor, image_res, path=".
                 
             # Get the particle data
             for particle_type in f["Galaxies"]["Particles"].keys():
-                # Get the particle data
-                for field in f["Galaxies"]["Particles"][particle_type]["Images"].keys():
-                    # Get the image
-                    #TODO: Currently img_res is a list of 2 elements. Need to change this to a single value
-                    image = g.get_image(field=field, plotfactor= plot_factor, res =image_res[0],**fields[field])
-                    f["Galaxies"]["Particles"][particle_type]["Images"][field][index] = image
+                # loop thorugh the dimensions
+                for d in f["Galaxies"]["Particles"][particle_type]["Images"].keys():
+                    # loop through the fields
+                    for field in f["Galaxies"]["Particles"][particle_type]["Images"][d].keys():
+                        # Get the image
+                        dim = int(d[-1]) #TODO: This is a bit hacky. Maybe change this
+                        image = g.get_image(field=field, plotfactor= plot_factor, res =image_res,dim = dim,**fields[field])
+                        f["Galaxies"]["Particles"][particle_type]["Images"][d][field][index] = image
             
             # Update the index position
             f.attrs["index_position"] += 1
@@ -170,7 +198,7 @@ def _calculate_images(simulation,halo_ids,fields,plot_factor, image_res, path=".
         
         
  #TODO: Maybe specify all the parameters in a seperate JSON file and load them in the function. Maybe more convenient for the user.     
-def generate_data(simulation, halo_ids, fields, plot_factor, image_res, galaxy_parameters, particle_types, overwrite = None,resume = None,path="./", **kwargs):
+def generate_data(simulation, halo_ids, fields, plot_factor, image_res, galaxy_parameters, particle_types, overwrite = None,resume = None,path="./",dim= None, **kwargs):
     '''Generates the data for the galaxies and saves it to an HDF5 file.
     
     This method creates the HDF5 file data structure and saves the galaxy parameters and images to the file. The images are calculated using the get_image() method of the Galaxy class.
@@ -197,6 +225,8 @@ def generate_data(simulation, halo_ids, fields, plot_factor, image_res, galaxy_p
         For the halfmass_radius only the particle type specified in the particle_type argument are used.
     path: str
         Path to the HDF5 file to save the data to. This file should be created using create_data_structure() method.
+    dim: int, default = None
+        Dimension of the images to be calculated. If None, both 2D and 3D images are calculated. Set to 2 or 3 to calculate only 2D or 3D images. 
     **kwargs: dict
         Keyword arguments passed to the Galaxy class. Halo ID and particle type are overwritten in the loop.
         e.g. {"base_path":basePath,"halo_id":0,"particle_type": "stars", "snapshot":99} for IllustrisTNG
@@ -221,7 +251,7 @@ def generate_data(simulation, halo_ids, fields, plot_factor, image_res, galaxy_p
                 }
                 
     >>> galaxy_parameters = ["mass", "halo_id"] # List of galaxy parameters to be saved
-    >>> generate_data(simulation, halo_ids, fields, plot_factor, img_res, galaxy_parameters, particle_types, path)
+    >>> generate_data(simulation, halo_ids, fields, plot_factor, img_res, galaxy_parameters, particle_types, path, dim=None)
     
     This will create the HDF5 file and save the galaxy parameters and images to the file in the following structure:
     
@@ -230,19 +260,30 @@ def generate_data(simulation, halo_ids, fields, plot_factor, image_res, galaxy_p
         │   ├── Attributes: Group
         │   │   ├── mass: (10,)
         │   │   └── halo_id: (10,)
-        │   └── Particles
-        │       ├── gas
-        │       │   └── Images
-        │       │       ├── Masses: (10, 64, 64)
-        │       │       ├── GFM_Metallicity: (10, 64, 64)
-        │       │       └── GFM_StellarFormationTime: (10, 64, 64)
-        │       └── stars
+        │   └── Particles: Group
+        │       ├── gas: Group
+        │       │   └── Images: Group
+        │       │       ├── 2D:     # 2D images
+        │       │       │   ├── Masses: (10, 64, 64)
+        │       │       │   ├── GFM_Metallicity: (10, 64, 64)
+        │       │       │   └── GFM_StellarFormationTime: (10, 64, 64)
+        │       │       └── 3D    # 3D images
+        │       │           ├── Masses: (10, 64, 64, 64)
+        │       │           ├── GFM_Metallicity: (10, 64, 64, 64)
+        │       │           └── GFM_StellarFormationTime: (10, 64, 64, 64)
+        │       └── stars   
         │           └── Images
-        │               ├── Masses: (10, 64, 64)
-        │               ├── GFM_Metallicity: (10, 64, 64)
-        │               └── GFM_StellarFormationTime: (10, 64, 64)
-        └── Attributes
-            └── index_position
+        │               ├── dim2
+        │               │   ├── Masses: (10, 64, 64)
+        │               │   ├── GFM_Metallicity: (10, 64, 64)
+        │               │   └── GFM_StellarFormationTime: (10, 64, 64)
+        │               └── dim3
+        │                   ├── Masses: (10, 64, 64, 64)
+        │                   ├── GFM_Metallicity: (10, 64, 64, 64)
+        │                   └── GFM_StellarFormationTime: (10, 64, 64, 64)
+  
+
+
 
         
         You can access the datasets by hand using the following code:
@@ -250,7 +291,7 @@ def generate_data(simulation, halo_ids, fields, plot_factor, image_res, galaxy_p
         >>> f = h5py.File("./galaxy_data.hdf5", "r")
         >>> f["Galaxies/Attributes/mass"][0]
         1.0e+12
-        >>> img = f["Galaxies/Particles/gas/Images/Masses"][0] # First galaxy, gas particles, Masses field image 
+        >>> img = f["Galaxies/Particles/gas/Images/dim2/Masses"][0] # First galaxy, gas particles, Masses field image 
         >>> img.shape
         (64, 64)
         >>> f.close()
@@ -262,7 +303,7 @@ def generate_data(simulation, halo_ids, fields, plot_factor, image_res, galaxy_p
     # If File does not exist, create it
     if not os.path.exists(os.path.join(path,"galaxy_data.hdf5")):
         # Create the HDF5 file and the data structure
-        _create_data_structure(n_galaxies=n_galaxies, image_res=image_res, galaxy_parameters=galaxy_parameters, particle_types=particle_types, fields=fields, path=path)
+        _create_data_structure(n_galaxies=n_galaxies, image_res=image_res, galaxy_parameters=galaxy_parameters, particle_types=particle_types, fields=fields, path=path, dim = dim)
     else:
         #Check if overwrite Flag is set
         if overwrite is None:
@@ -271,20 +312,11 @@ def generate_data(simulation, halo_ids, fields, plot_factor, image_res, galaxy_p
                 overwrite = True
         if overwrite is True:
             print("Overwriting the existing file: ", os.path.join(path,"galaxy_data.hdf5"))
-            _create_data_structure(n_galaxies=n_galaxies, image_res=image_res, galaxy_parameters=galaxy_parameters, particle_types=particle_types, fields=fields, path=path)
+            _create_data_structure(n_galaxies=n_galaxies, image_res=image_res, galaxy_parameters=galaxy_parameters, particle_types=particle_types, fields=fields, path=path, dim = dim)
         else:
             print("Loading the existing file: ", os.path.join(path,"galaxy_data.hdf5"))
     # Calculate the images
     _calculate_images(simulation, halo_ids, fields, plot_factor, image_res, path, resume=resume,**kwargs)
-        
-        
-
-
-
-
-
-
-
 
 
 
@@ -349,14 +381,16 @@ def main():
         path = config["path"] # Path where the HDF5 file will be saved
         galaxy_parameters = config["galaxy_parameters"] # List of galaxy parameters to be saved
         fields = config["fields"] # Dictionary of fields to be saved
+        dim = config["dim"]
         kwargs = config["GalaxyArgs"] # Keyword arguments passed to the Galaxy class
+       
     except:
         raise ImportError("Could not load the parameters from the configuration file. Please check the documentation for the correct format.")
     
     print("Config loaded successfully.")
     # Call the generate_data() method
     generate_data(simulation = simulation, halo_ids = halo_ids, fields = fields, plot_factor = plot_factor, 
-                    image_res = img_res, galaxy_parameters = galaxy_parameters, particle_types = particle_types, path = path, overwrite= args.overwrite, resume = args.resume,**kwargs)
+                    image_res = img_res, galaxy_parameters = galaxy_parameters, particle_types = particle_types, path = path, overwrite= args.overwrite, resume = args.resume,dim =dim,**kwargs)
 
 if __name__ ==  "__main__":
     main()
