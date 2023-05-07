@@ -106,7 +106,7 @@ class IllustrisTNG():
         
         self.particle_coordinates = self.particles["Coordinates"][self.real_star_mask]
         self.particle_masses = scale_to_physical_units(self.particles["Masses"][self.real_star_mask], 'Masses')
-    def get_field(self, field):
+    def get_field(self, field, particle_type=None):
         '''Load a field from the particle data. Used for the image generation.
         The field is returned as a numpy array and converted to physical units.
 
@@ -114,6 +114,9 @@ class IllustrisTNG():
         ----------
         field : str
             Name of the field to load. The field should be stored in the snapshot.  
+        particle_type : str, optional
+            If the field is stored for multiple particle types, this specifies which particle type to return. 
+            If None, the field is returned for all particle types. The default is None.
 
         Returns
         -------
@@ -127,12 +130,19 @@ class IllustrisTNG():
         >>> galaxy.get_field("GFM_StellarFormationTime")
 
         '''
-        # Check if the field is in the snapshot
-        if field not in self.particles.keys():
-            if field not in self.subhalo.keys():
-                raise ValueError("Field {} not in snapshot.".format(field))
         
         if field in self.particles.keys():
-            return scale_to_physical_units(self.particles[field][self.real_star_mask], field)
+            return_field= scale_to_physical_units(self.particles[field][self.real_star_mask], field)
         elif field in self.subhalo.keys():
-            return scale_to_physical_units(self.subhalo[field], field)
+            return_field= scale_to_physical_units(self.subhalo[field], field)
+        else:
+            raise ValueError("Field {} not in snapshot.".format(field))
+
+       # If "Type" is in the field name, check which particle type is requested
+        if "Type" in field:
+            if particle_type is None:
+                return return_field
+            else:
+                return return_field[il.util.partTypeNum(particle_type)]
+        else:
+            return return_field

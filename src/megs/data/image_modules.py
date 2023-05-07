@@ -330,7 +330,7 @@ def rotation_matrix(inertiaTensor, return_value = "face-on"):
     return r[return_value]
 
 
-def face_on_rotation(rHalf, subhalo_pos,coordinates, particle_masses):
+def face_on_rotation(rHalf, subhalo_pos,coordinates, particle_masses, return_rotation_matrix = False):
     '''Rotate the galaxy to face-on orientation.
 
     The galaxy is rotated to face-on orientation using the rotation matrix calculated from the moment of inertia tensor.
@@ -360,6 +360,8 @@ def face_on_rotation(rHalf, subhalo_pos,coordinates, particle_masses):
     pos = coordinates- subhalo_pos
     rot_pos= np.dot(rot_matrix, pos.T).T
     rotated_particles = np.asarray(rot_pos)
+    if return_rotation_matrix == True:
+        return rotated_particles, rot_matrix
     return rotated_particles    
 
 
@@ -407,7 +409,7 @@ def get_horizontal_angle(img):
     return np.arctan2(*fit.components_[0])
 
 
-def horizontal_rotation(img, coordinates, halfmassrad,plotfactor=10):
+def horizontal_rotation(img, coordinates, halfmassrad,plotfactor=10, return_rotation_matrix = False):
     '''Rotate the galaxy to be horizontal.
     
     The galaxy is rotated to be horizontal using the angle of the galaxy bar in the image calculated with the PCA.
@@ -437,6 +439,8 @@ def horizontal_rotation(img, coordinates, halfmassrad,plotfactor=10):
     #Rotate
     horizontal_rotation_matrix = calc_rotation_matrix(-angle)
     rotated_coordinates = np.dot(horizontal_rotation_matrix, coordinates.T).T
+    if return_rotation_matrix == True:
+        return rotated_coordinates, horizontal_rotation_matrix
     return rotated_coordinates
 
 

@@ -13,13 +13,13 @@ Example
 >>> galaxy.mass # Get the mass of the galaxy
 """
 
-from simulations import *  # Import all Galaxy Classes of the simulations
+from .simulations import *  # Import all Galaxy Classes of the simulations
 
 import numpy as np
 import sys
 
 
-from image_modules import image2D, image3D, norm, face_on_rotation, horizontal_rotation
+from .image_modules import image2D, image3D, norm, face_on_rotation, horizontal_rotation
 
 
 def str_to_class(classname):
@@ -62,6 +62,7 @@ class Galaxy:
             raise AttributeError("Galaxy object does not have a smoothing length.")
 
         self.coordinates = self._rotate_galaxy()
+        
 
     def get_coordinates(self):
         """Get the coordinates of the particles.
@@ -92,22 +93,27 @@ class Galaxy:
         if self.rotated_flag:
             return self.coordinates
 
-        face_on_rotated_coords = face_on_rotation(
+        face_on_rotated_coords, rotation_matrix_face_on = face_on_rotation(
             coordinates=self.particle_coordinates,
             particle_masses=self.particle_masses,
             rHalf=self.halfmassrad,
             subhalo_pos=self.center,
+            return_rotation_matrix=True,
         )
         # maybe horizontal rotataion is not working properly
         # Create temporary image to get the rotation angle: Maybe there is a better way to do this. Only calculating a hist does not work properly.
         img = self._render_image_2D(
             field=self.particle_masses, coordinates=face_on_rotated_coords
         )
-        horizontal_rotated_coords = horizontal_rotation(
+        horizontal_rotated_coords, rotation_matrix_horizontal = horizontal_rotation(
             img=img,
             coordinates=face_on_rotated_coords,
             halfmassrad=self.halfmassrad,
             plotfactor=_plotfactor,
+            return_rotation_matrix=True,
+        )
+        self._total_rotation_matrix = np.dot(
+            rotation_matrix_horizontal, rotation_matrix_face_on
         )
         self.rotated_flag = True
         return horizontal_rotated_coords
@@ -335,3 +341,48 @@ class Galaxy:
             image = norm(image, **kwargs)
 
         return image
+
+    def get_rotation_matrix(self):
+        """Get the total rotation matrix of the galaxy.
+
+        The total rotation matrix is the rotation matrix that combines the rotation face on rotation and horizontal rotation.
+        
+        Returns
+        -------
+        numpy.array
+            The total rotation matrix of the galaxy.
+
+        """
+        
+        return self._total_rotation_matrix
+    
+    def get_coordinates(self):
+        """Get the coordinates of the particles of the galaxy.
+
+        The coordinates are rotated by the total rotation matrix of the galaxy.
+
+        Returns
+        -------
+        numpy.array
+            The correctly rotated coordinates of the particles of the galaxy.
+
+        """
+        return self.coordinates
+    
+    def get_rotated_velocities(self):
+        """Get the correctly rotated velocities of the particles of the galaxy.
+
+        The velocities are rotated by the total rotation matrix of the galaxy.
+
+        Returns
+        -------
+        numpy.array
+            The correctly rotated velocities of the particles of the galaxy.
+
+        """
+        # Rotate the velocities
+        velocities = self.get_field("Velocities")
+        self.velocities = np.dot(self._total_rotation_matrix, velocities.T).T
+        return self.velocities
+    
+ 
