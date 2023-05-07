@@ -333,34 +333,34 @@ class mPCA():
         #Calculate residue of random galaxy
         self.compare()
             
-        def compare(self, index = None):
-            field_length = len(self.data._image_fields[self.particle_type])
-            #Calculate residue of random galaxy
-            if index is None:
-                randomind = np.random.randint(0, self.datamatrix.shape[0])
-            else:
-                randomind = index
-            inverse_images = self.inverse_transformed_datamatrix[randomind].reshape(field_length, *self._IMG_SHAPE)
-            for index, field in enumerate(self.data._image_fields[self.particle_type]):
-                fig, ax = plt.subplots(1, 3, figsize=(6, 3))
-                
-                original = self.datamatrix[randomind].reshape(field_length, *self._IMG_SHAPE)[index]
-                
-                ax[0].imshow(original)
-                ax[0].set_title(f"Original galaxy")
-                ax[0].axis("off")
-                ax[1].imshow(inverse_images[index])
-                ax[1].set_title(f"Reconstructed galaxy")
-                ax[1].axis("off")
-                
-                # Calculate residue
-                residue = np.abs(original - inverse_images[index])
-                #Divide with original where original != 0
-                residue[original != 0] = residue[original != 0] / original[original != 0]
-                print(residue.max(), residue.min())
-                ax[2].imshow(residue, vmin=0, vmax=1)
-                ax[2].set_title(f"Residue")
-                ax[2].axis("off")
-                
-                fig.suptitle(f"Comparison of {field} field")
-                plt.show()
+    def compare(self, index = None):
+        field_length = len(self.data._image_fields[self.particle_type])
+        #Calculate residue of random galaxy
+        if index is None:
+            randomind = np.random.randint(0, self.datamatrix.shape[0])
+        else:
+            randomind = index
+        inverse_images = self.inverse_transformed_datamatrix[randomind].reshape(field_length, *self._IMG_SHAPE)
+        for index, field in enumerate(self.data._image_fields[self.particle_type]):
+            fig, ax = plt.subplots(1, 3, figsize=(6, 3))
+            
+            original = self.datamatrix[randomind].reshape(field_length, *self._IMG_SHAPE)[index]
+            
+            ax[0].imshow(original)
+            ax[0].set_title(f"Original galaxy")
+            ax[0].axis("off")
+            ax[1].imshow(inverse_images[index])
+            ax[1].set_title(f"Reconstructed galaxy")
+            ax[1].axis("off")
+            
+            # Calculate residue
+            residue = np.abs(original - inverse_images[index])
+            #Divide with original where original != 0
+            residue[original != 0] = residue[original != 0] / original[original != 0]
+            print(residue.max(), residue.min())
+            ax[2].imshow(residue, vmin=0, vmax=1)
+            ax[2].set_title(f"Residue")
+            ax[2].axis("off")
+            
+            fig.suptitle(f"Comparison of {field} field")
+            plt.show()

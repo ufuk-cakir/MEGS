@@ -50,6 +50,9 @@ _age = cosmo.age(0).value #Age of the universe in Gyr
 def scale_to_physical_units(x, field):
     '''get rid of the Illustris units.'''
 
+    # If the field string contains the word "Mass"
+    if 'Mass' in field:
+        return x * 1e10 / _h
     if field == 'Masses':
         return x * 1e10 / _h
 
@@ -126,5 +129,10 @@ class IllustrisTNG():
         '''
         # Check if the field is in the snapshot
         if field not in self.particles.keys():
-            raise ValueError("Field {} not in snapshot.".format(field))
-        return scale_to_physical_units(self.particles[field][self.real_star_mask], field)
+            if field not in self.subhalo.keys():
+                raise ValueError("Field {} not in snapshot.".format(field))
+        
+        if field in self.particles.keys():
+            return scale_to_physical_units(self.particles[field][self.real_star_mask], field)
+        elif field in self.subhalo.keys():
+            return scale_to_physical_units(self.subhalo[field], field)
