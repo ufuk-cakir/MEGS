@@ -447,9 +447,38 @@ def horizontal_rotation(img, coordinates, halfmassrad,plotfactor=10, return_rota
 
 #------------- Visualisation -------------
 import plotly.graph_objects as go
-def volume(hist ,opacity = .1, isomin = 0, isomax = None, surface_count = 30):
+def volume(hist ,opacity = .1, isomin = None, isomax = None, surface_count = 30, add_small_number = True, norm_hist = True, **kwargs):
+    '''Visualise a 3D histogram as a volume.
+    
+    Uses plotly to visualise a 3D histogram as a volume. The volume can be normalised and a small number can be added to the histogram to avoid visualising empty space.
+    
+    Parameters
+    ----------
+    hist : numpy.array
+        The 3D histogram to visualise.
+    opacity : float, optional
+        The opacity of the volume. The default is .1.
+    isomin : float, optional
+        The minimum value of the volume. The default is 0.
+    isomax : float, optional
+        The maximum value of the volume. The default is None.
+    surface_count : int, optional
+        The number of surfaces to use for the volume. The default is 30.
+    add_small_number : bool, optional
+        Whether to add a small number to the histogram to avoid visualizing empty space. The default is True.
+    norm_hist : bool, optional
+        Whether to normalise the histogram. The default is True.
+    **kwargs :
+        Additional arguments to pass to the normalisation function.
+    '''
+    if isomin is None: isomin = hist.min()
     if isomax is None: isomax = hist.max()
     data_hist =hist.copy()
+    
+    if norm_hist == True:
+        data_hist = norm(data_hist, **kwargs)
+    if add_small_number == True:
+        data_hist += 1e-10
     xx, yy, zz = np.where(data_hist != 0)
     s = data_hist[xx,yy,zz]
     fig = go.Figure(data=go.Volume(
