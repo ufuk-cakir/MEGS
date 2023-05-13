@@ -13,14 +13,14 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../../src/mypackage"))
+sys.path.insert(0, os.path.abspath("../../src"))
 
 
 # -- Project information -----------------------------------------------------
 
-project = "python-project-template"
-copyright = "2020, Scientific Software Center"
-author = "Scientific Software Center"
+project = "MEGS"
+copyright = "2023, IWR"
+author = "Ufuk Cakir"
 
 # The full version, including alpha/beta/rc tags
 release = "0.1"
@@ -31,7 +31,7 @@ release = "0.1"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["sphinx.ext.autodoc", "myst_parser", "sphinx.ext.napoleon"]
+extensions = ["sphinx.ext.autodoc", "myst_parser", "sphinx.ext.napoleon", "numpydoc"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -47,9 +47,14 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "alabaster"
-
+html_theme = "pydata_sphinx_theme"
+html_theme_options = {
+    'navigation_with_keys': True,
+    'show_nav_level': 4,
+    # other options...
+}
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
+
 html_static_path = ["_static"]
