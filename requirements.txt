@@ -39,7 +39,6 @@ pyerfa==2.0.0.3
 Pygments==2.15.1
 pyparsing==3.0.9
 python-dateutil==2.8.2
-pywin32==305.1
 PyYAML==6.0
 pyzmq==25.0.2
 scikit-learn==1.2.2
