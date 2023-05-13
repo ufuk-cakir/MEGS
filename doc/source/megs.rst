@@ -1,6 +1,14 @@
 megs package
 ============
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   megs.data
+
 Submodules
 ----------
 
