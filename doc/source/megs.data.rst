@@ -20,10 +20,18 @@ megs.data.generate module
    :undoc-members:
    :show-inheritance:
 
-megs.data.image\_modules module
--------------------------------
+megs.data.image module
+----------------------
 
-.. automodule:: megs.data.image_modules
+.. automodule:: megs.data.image
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+megs.data.load module
+---------------------
+
+.. automodule:: megs.data.load
    :members:
    :undoc-members:
    :show-inheritance:
