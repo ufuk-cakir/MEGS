@@ -47,6 +47,52 @@ except ImportError:
 _h = cosmo.H(0).value/100 #Hubble constant
 _age = cosmo.age(0).value #Age of the universe in Gyr
 
+
+def select_illustris_galaxies(basepath,snapshot,M_min,M_max, particle_type = "stars"):
+    '''Galaxy selection for IllustrisTNG.
+    
+    Selects all galaxies with stellar mass between M_min and M_max and with SubhaloFlag == 1 (i.e proper galaxies).
+    
+    Parameters:
+    -----------
+    basepath: str
+        Path to the IllustrisTNG data.
+    snapshot: int
+        Snapshot number.
+    M_min: float
+        Minimum stellar mass in Msun/h.
+    M_max: float
+        Maximum stellar mass in Msun/h.
+    particle_type: str
+        Particle type of the galaxy. Default: "stars"
+
+    Returns:
+    --------
+    halo_ids: numpy array
+        Array of halo IDs of the selected galaxies.
+    '''
+    subhalos = il.groupcat.loadSubhalos(basepath, snapshot, fields=["SubhaloMassType", "SubhaloFlag"])
+    
+    stellar_mass = subhalos['SubhaloMassType'][:,il.util.partTypeNum(particle_type)] * 10**10 / 0.704
+    
+    # Check if M_Min and M_max are set
+    if M_min is None:
+        M_min = 0
+    if M_max is None:
+        M_max = np.inf
+
+    # Get halo IDs of all subhalos with stellar   10^9.5 Msun/h < Mstar < 10^13 Msun/h
+    mass_cut = np.where((stellar_mass> M_min) & (stellar_mass < M_max))[0]
+
+    # Get halo IDs of all subhalos with SubhaloFlag == 0 (i.e. no Galaxy and should be ignored)
+    flag_cut = np.where(subhalos['SubhaloFlag'] == 1)[0]
+
+    # Get the common halo IDs that satisfy both conditions
+    halo_ids = np.intersect1d(mass_cut, flag_cut)
+    
+    print("Found {} galaxies with stellar mass between {} and {} Msun/h.".format(len(halo_ids), M_min, M_max))
+    return halo_ids
+
 def scale_to_physical_units(x, field):
     '''get rid of the Illustris units.'''
 

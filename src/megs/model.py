@@ -3,6 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.decomposition import PCA
+import seaborn as sns
+sns.set_context("paper")
+sns.set_style("dark")
 
 # Helper function to print the structure of an hdf5 file
 #TODO Move this to a separate file
@@ -305,7 +308,33 @@ class mPCA():
         if show_results:
             self.show_results()
             
-    def show_results(self):
+            
+    def plot_eigengalaxies(self, index =0, save_path=None, show = True):
+        '''Plot the eigengalaxies of a field in a grid
+        
+        Parameters: 
+        -----------
+            index : int, optional
+                Index of the field to plot
+        '''
+        cmap = sns.color_palette("mako", as_cmap=True)
+        fig, axes = plt.subplots(6,10, figsize=(15,10), dpi=300)
+        for i, ax in enumerate(axes.flatten()):
+            ax.imshow(self.eigengalaxies[i][index], origin="lower", cmap=cmap)
+            ax.axis("off")
+            ax.set_title(f"{i+1}")
+        fig.suptitle(f"Eigengalaxies: {self._IMG_ORDER[index]}", fontsize=15)
+        fig.tight_layout(rect=[0, 0.01, 1, 0.95])
+        
+        if save_path is not None:
+            plt.savefig(f"{save_path}/eigengalaxies_{self._IMG_ORDER[index]}.png", dpi=300)
+        if show:
+            plt.show()
+        plt.close()
+
+            
+        
+    def show_results(self, show = True, save_path=None):
         fig, ax = plt.subplots(1, 2, figsize=(10, 5))
         ax[0].plot(self.pca.explained_variance_ratio_)
         ax[0].set_xlabel("Component")
@@ -319,25 +348,9 @@ class mPCA():
         field_length = len(self.data._image_fields[self.particle_type][self._dim]) 
         
         #Loop over different image fields
-        for index,field in enumerate(self.data._image_fields[self.particle_type][self._dim]):
-
+        for index in range(field_length):
+            self.plot_eigengalaxies(index = index, show = show, save_path=save_path)
             
-
-            rows = int(np.ceil(np.sqrt(self.pca.n_components)))
-            cols = int(np.ceil(self.pca.n_components/rows))
-            fig, ax = plt.subplots(rows, cols, figsize=(cols*3, rows*3))
-            for i in range(rows):
-                for j in range(cols):
-                    if i*cols+j < self.pca.n_components:
-                        ax[i, j].imshow(self.eigengalaxies[i*cols+j][index])
-                        ax[i, j].set_title(f"Component {i*cols+j}")
-                        ax[i, j].axis("off")
-            fig.suptitle(f"Eigengalaxies:{field}")
-            plt.show()
-            
-            
-        
-    
         # Plot the mean galaxy
         
         fig, ax = plt.subplots(1,field_length, figsize = (field_length*3, 3))
