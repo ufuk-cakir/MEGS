@@ -7,7 +7,8 @@ import os
 import numpy as np
 from tqdm import tqdm
 
-from . import Galaxy
+from .galaxy import Galaxy
+
 
 def _create_data_structure(
     n_galaxies,
@@ -41,10 +42,8 @@ def _create_data_structure(
     Example:
     --------
     >>> create_data_structure(1000, (64,64), galaxy_paramters=["mass","halo_id"], particle_types =["stars"], {"Masses":False, "GFM_Metallicity":False, "GFM_StellarFormationTime":True})
-    
     This will create a "galaxy_data.hdf5" HDF5 file with the following structure and save it to the current directory:
-    
-    >>> Galaxies
+    Galaxies
         Attributes
             mass: (1000,)
             halo_id: (1000,)
@@ -111,9 +110,7 @@ def _calculate_images(
     resume=None,
     **kwargs,
 ):
-    """Calculates the images for the galaxies and saves them to the HDF5 file
-    
-    Needs to be run after _create_data_structure() method.
+    """Calculates the images for the galaxies and saves them to the HDF5 file. Needs to be run after _create_data_structure() method.
 
     Parameters
     ----------
@@ -241,8 +238,7 @@ def generate_data(
     dim=None,
     **kwargs,
 ):
-    """
-    Generates the data for the galaxies and saves it to an HDF5 file.
+    """Generates the data for the galaxies and saves it to an HDF5 file.
 
     This method creates the HDF5 file data structure and saves the galaxy parameters and images to the file. The images are calculated using the get_image() method of the Galaxy class.
     This is later used to build the morphology model.
@@ -255,7 +251,14 @@ def generate_data(
         List of halo IDs to calculate the images for. The halo_ids are used to load the galaxy data from the simulation.
     fields: dict
         Dictionary of fields to be saved, where the key is the field name. The values of the dictionary are passed to the get_image() method of the Galaxy class.
-        For more information on the fields see the get_image() method of the Galaxy class.
+        Example: fields = {"Masses":{"mass_weighted":False,
+                                        "normed":True},
+                            "GFM_Metallicity":{"mass_weighted":True,
+                                                "normed":True},
+                            "GFM_StellarFormationTime":{"mass_weighted":True,
+                                                        "normed":False}
+                            }
+       For more information on the fields see the get_image() method of the Galaxy class.
     plot_factor: float
         Factor for the image range. The image range is calculated as halfmass_radius*plot_factor and the image is centred on the galaxy centre.
         For the halfmass_radius only the particle type specified in the particle_type argument are used.
@@ -270,16 +273,13 @@ def generate_data(
     Example
     -------
     Set up the parameters to call the generate_data() method
-    
     >>> simulation = "IllustrisTNG" # Simulation name, used to initialise the Galaxy class
     >>> halo_ids = [0,1,2,3,4,5,6,7,8,9] # List of halo IDs to calculate the images for
     >>> particle_types = ["stars", "gas"]
     >>> img_res = [64,64]
     >>> plot_factor = 10
     >>> path = "./" # Path where the HDF5 file will be saved
-    
-    Define the fields to be saved
-    
+     Define the fields to be saved
     >>> fields = {"Masses":{"mass_weighted":False,
                             "normed":True},
                 "GFM_Metallicity":{"mass_weighted":True,
@@ -289,10 +289,8 @@ def generate_data(
                 }
     >>> galaxy_parameters = ["mass", "halo_id"] # List of galaxy parameters to be saved
     >>> generate_data(simulation, halo_ids, fields, plot_factor, img_res, galaxy_parameters, particle_types, path, dim=None)
-    
     This will create the HDF5 file and save the galaxy parameters and images to the file in the following structure:
-    
-    >>> ./galaxy_data.hdf5
+        ./galaxy_data.hdf5
         ├── Galaxies: Group
         │   ├── Attributes: Group
         │   │   ├── mass: (10,)
@@ -318,20 +316,16 @@ def generate_data(
         │                   ├── Masses: (10, 64, 64, 64)
         │                   ├── GFM_Metallicity: (10, 64, 64, 64)
         │                   └── GFM_StellarFormationTime: (10, 64, 64, 64)
-        
-    
-    You can access the datasets by hand using h5py:
-    
-    >>> import h5py
-    >>> f = h5py.File("./galaxy_data.hdf5", "r")
-    >>> f["Galaxies/Attributes/mass"][0]
-    1.0e+12
-    >>> img = f["Galaxies/Particles/gas/Images/dim2/Masses"][0] # First galaxy, gas particles, Masses field image
-    >>> img.shape
-    (64, 64)
-    >>> f.close()
-    
-    This data file is later used to build the morphology model.
+        You can access the datasets by hand using the following code:
+        >>> import h5py
+        >>> f = h5py.File("./galaxy_data.hdf5", "r")
+        >>> f["Galaxies/Attributes/mass"][0]
+        1.0e+12
+        >>> img = f["Galaxies/Particles/gas/Images/dim2/Masses"][0] # First galaxy, gas particles, Masses field image
+        >>> img.shape
+        (64, 64)
+        >>> f.close()
+        This data file is later used to build the morphology model.
     """
     n_galaxies = len(halo_ids)
 

@@ -1,8 +1,26 @@
+""" 
+Galaxy Class
+------------
+This module contains the Galaxy class as the main class of the package. It is used to load a galaxy from a simulation and to render images of the galaxy.
+One can specify the simulation the galaxy is from and the halo id of the galaxy. The Galaxy class will then load the galaxy data from the simulation based 
+on the Class defined in the simulatoins module and rotate the galaxy to face-on and horizontal orientation.
+The get_image method can then be used to render images of different fields of the galaxy, and chose if they should be mass weighted or not.
+
+Example
+-------
+>>> galaxy = Galaxy("IllustrisTNG", halo_id=0, particle_type="stars") # Load a galaxy from the IllustrisTNG simulation. Note that the Class IllustrisTNG needs to be defined in the simulations.py file
+>>> galaxy.get_image("GFM_StellarFormationTime", mass_weighted=True) # Render an image of the age of the stars in the galaxy
+>>> galaxy.mass # Get the mass of the galaxy
+"""
+
 from .simulations import *  # Import all Galaxy Classes of the simulations
 
 import numpy as np
 import sys
-from .image import image2D, image3D, norm, face_on_rotation, horizontal_rotation
+
+
+from .image_modules import image2D, image3D, norm, face_on_rotation, horizontal_rotation
+
 
 def str_to_class(classname):
     """Converts a string to a class."""
@@ -16,11 +34,6 @@ def str_to_class(classname):
 
 class Galaxy:
     """Base class for all galaxies.
-    This module contains the Galaxy class as the main class of the package. It is used to load a galaxy from a simulation and to render images of the galaxy.
-    One can specify the simulation the galaxy is from and the halo id of the galaxy. The Galaxy class will then load the galaxy data from the simulation based 
-    on the Class defined in the simulatoins module and rotate the galaxy to face-on and horizontal orientation.
-    The get_image method can then be used to render images of different fields of the galaxy, and chose if they should be mass weighted or not.
-
 
     Parameters
     ----------
@@ -29,27 +42,6 @@ class Galaxy:
 
     **kwargs : dict
         Additional arguments for the galaxy class. This is used to initialize the galaxy class of a specific simulation. See the documentation of the galaxy class defined in simulations.py for more information.
-    
-    Attributes
-    ----------
-    galaxy_object : object
-        The galaxy object of the simulation. This is the class defined in the simulations.py file.
-    plot_factor : int
-        Factor used in the horizontal_rotation method defined in the rotation.py module to scale the image. The default is 10. For more information see the documentation of the horizontal_rotation method.
-    res : int
-        Resolution of the image. The default is 64. For more information see the documentation of the horizontal_rotation method.
-    smoothing_length : numpy.array
-        Smoothing length of the galaxy. This is used for the image rendering.
-    coordinates : numpy.array
-        Coordinates of the particles. This is used for the image rendering.
-    rotated_flag : bool
-        Flag to check if the galaxy is already rotated. This is used for the image rendering.
-        
-    Examples
-    --------
-    >>> galaxy = Galaxy("IllustrisTNG", halo_id=0, particle_type="stars") # Load a galaxy from the IllustrisTNG simulation. Note that the Class IllustrisTNG needs to be defined in the simulations.py file
-    >>> galaxy.get_image("GFM_StellarFormationTime", mass_weighted=True) # Render an image of the age of the stars in the galaxy
-    >>> galaxy.get_rotation_matrix() # Get the rotation matrix used to rotate the galaxy to face-on and horizontal orientation
     """
 
     def __init__(self, simulation="IllustrisTNG", **kwargs):
@@ -72,8 +64,7 @@ class Galaxy:
         
 
     def get_coordinates(self):
-        """
-        Get the coordinates of the particles.
+        """Get the coordinates of the particles.
 
         The coordinates are the coordinates of the particles in the galaxy. They are rotated to face-on and horizontal orientation.
         
@@ -237,9 +228,7 @@ class Galaxy:
         return img
 
     def render_image(self, field, dim, coordinates=None):
-        """
-        Render the image of a given field.
-        
+        """Render the image of a given field.
         This function is called by the get_image function. It renders the image using the _render_image_2D or _render_image_3D function based on the dimension of the image.
         You can change the image rendering by implementing your own image rendering function in the _render_image_2D or _render_image_3D function.
 
@@ -279,8 +268,7 @@ class Galaxy:
         dim=2,
         **kwargs
     ):
-        """
-        Get the image of a given field.
+        """Get the image of a given field.
 
         This function renders the image of a given field, which can be any field that is available in the snapshot and can be accessed by the get_field function of the galaxy object.
         The images can be mass weighted and normalized.

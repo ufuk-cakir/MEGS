@@ -1,6 +1,5 @@
 '''This module contains the class for specific simulations. Currently only IllustrisTNG is implemented.
 You can add your own simulation by creating a new class based on the following template:
-
 class YourSimulation():
     def __init__(self, halo_id, particle_type, data_path):
         self.data_path = data_path #Path to the data.
@@ -174,7 +173,6 @@ class IllustrisTNG():
         --------
         >>> galaxy = Galaxy("IllustrisTNG", halo_id=0, particle_type="stars")
         >>> galaxy.get_field("GFM_StellarFormationTime")
-
         '''
         
         if field in self.particles.keys():

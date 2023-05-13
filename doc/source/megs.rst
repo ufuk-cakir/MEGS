@@ -1,24 +1,14 @@
 megs package
 ============
 
-Submodules
-----------
+Subpackages
+-----------
 
-megs.main module
-----------------
+.. toctree::
+   :maxdepth: 7
 
-.. automodule:: megs.main
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-megs.model module
------------------
-
-.. automodule:: megs.model
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   megs.data
+   megs.model
 
 Module contents
 ---------------
