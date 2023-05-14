@@ -1,9 +1,11 @@
+accessible-pygments==0.0.4
 alabaster==0.7.13
 astropy==5.2.2
 asttokens==2.2.1
 Babel==2.12.1
 backcall==0.2.0
 backports.functools-lru-cache==1.6.4
+beautifulsoup4==4.12.2
 certifi==2023.5.7
 charset-normalizer==3.1.0
 colorama==0.4.6
@@ -38,6 +40,7 @@ myst-parser==1.0.0
 nest-asyncio==1.5.6
 numba==0.57.0
 numpy==1.24.3
+numpydoc==1.5.0
 packaging==23.1
 parso==0.8.3
 pickleshare==0.7.5
@@ -48,6 +51,7 @@ plotly==5.14.1
 prompt-toolkit==3.0.38
 psutil==5.9.0
 pure-eval==0.2.2
+pydata-sphinx-theme==0.13.3
 pyerfa==2.0.0.3
 Pygments==2.15.1
 pyparsing==3.0.9
@@ -60,6 +64,7 @@ scipy==1.10.1
 setuptools==66.0.0
 six==1.16.0
 snowballstemmer==2.2.0
+soupsieve==2.4.1
 Sphinx==6.2.1
 sphinxcontrib-applehelp==1.0.4
 sphinxcontrib-devhelp==1.0.2
@@ -81,3 +86,4 @@ urllib3==2.0.2
 wcwidth==0.2.6
 wheel==0.38.4
 zipp==3.15.0
+
