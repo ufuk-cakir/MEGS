@@ -147,4 +147,11 @@ src/mypackage/data/nohup.out
 src/mypackage/data/galaxy_data.hdf5
 src/megs/data/eigen3d.npy
 
+
+
+# Exclude folders
+src/megs/OLD_DATA_package
+src/exp/
+
+
 src/megs/OLD_DATA_package/*
