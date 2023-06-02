@@ -146,3 +146,5 @@ cython_debug/
 src/mypackage/data/nohup.out
 src/mypackage/data/galaxy_data.hdf5
 src/megs/data/eigen3d.npy
+
+src/megs/OLD_DATA_package/*
