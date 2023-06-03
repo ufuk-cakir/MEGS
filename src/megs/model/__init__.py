@@ -1,4 +1,4 @@
 #import mPca
-from .mPCA import mPCA as PCA
+from .mPCA import mPCA 
 
 
