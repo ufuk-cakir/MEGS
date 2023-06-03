@@ -34,6 +34,13 @@ class mPCA():
     >>> eigengalaxies = pca.get_eigengalaxies()
     '''
     
+    def _identity(self, x, **kwargs):
+        '''Identity function
+        
+        Used as default if no normalization function is specified.
+        '''
+        return x
+    
     def __init__(self,data, particle_type = None, norm_function = None, norm_function_kwargs=None, mask = None, dim=2):
         # Check if data is instance of DataLoader
         if not isinstance(data, DataLoader):
@@ -62,11 +69,12 @@ class mPCA():
         
         self.data = data
         self._dim = "dim2" if dim == 2 else "dim3"
-        self._norm_function = norm_function
+        self._norm_function = norm_function if norm_function is not None else self._identity # Set the normalization function to the identity function if no normalization function is specified
         self._norm_function_kwargs = norm_function_kwargs
         self._IMG_ORDER = self.data._image_fields[self.particle_type][self._dim]
         self._IMG_SHAPE = self.data.get_image(self.particle_type, self.data._image_fields[self.particle_type][self._dim][0], index = 0, dim = dim).shape
         # Initialize the datamatrix to of shape (n_galaxies, 0)
+        
         self.datamatrix = np.empty((data.get_attribute("mass").shape[0], 0)) 
         # Create datamatrix
         self._create_datamatrix(self._dim)
@@ -81,35 +89,34 @@ class mPCA():
         print("Creating datamatrix with the following fields:")
         print("===============================================")
         print("Particle type: ", self.particle_type)
-        print("Fields: ", self.data._image_fields[self.particle_type][self._dim])
+        print("Fields: ", self._IMG_ORDER)
         print("Dimension: ", dim)
-        print("norm_function_kwargs: ", self._norm_function_kwargs)
+        #print("norm_function_kwargs: ", self._norm_function_kwargs)
         # Say that for the fields that are not specified in the norm_function_kwargs, the default arguments are used
         print("Default arguments are used for the fields that are not specified in the norm_function_kwargs")
         print("===============================================")
         
-        
-        
-        
-        
-        
-        for field in self.data._image_fields[self.particle_type][self._dim]:
+    
+    
+        for field in self._IMG_ORDER:
             # Get the image of the specified particle type and field
             image = self.data.get_image(self.particle_type, field, dim = dim)
-            # Flatten each image to a 1D array
-            #image = image.reshape(image.shape[0], np.prod(self._IMG_SHAPE))
-            image = np.array([img.flatten() for img in image])
-            # Normalize the image
-            if self._norm_function is not None:
-                # Check if the norm function has arguments for the specified field
-                if field in self._norm_function_kwargs.keys():
-                    image = self._norm_function(image, **self._norm_function_kwargs[field])
-                else:
-                    # If no arguments are specified, use the default arguments
-                    image = self._norm_function(image)
-            # Add the image to the datamatrix
-            self.datamatrix = np.concatenate((self.datamatrix, image), axis=1)
+            norm_params = self._norm_function_kwargs[field] if field in self._norm_function_kwargs.keys() else {}
+            image = np.array([self._norm_function(img, **norm_params).flatten() for img in image])
             
+            # Normalize the image
+           
+           # if self._norm_function is not None:
+                # Check if the norm function has arguments for the specified field
+           #     if field in self._norm_function_kwargs.keys():
+           #         image = self._norm_function(image, **self._norm_function_kwargs[field])
+           #     else:
+                    # If no arguments are specified, use the default arguments
+           #         image = self._norm_function(image)
+            # Add the image to the datamatrix
+            
+            self.datamatrix = np.concatenate((self.datamatrix, image), axis=1)
+         
         print("Created datamatrix with shape: ", self.datamatrix.shape)
         
         
