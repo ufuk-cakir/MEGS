@@ -232,3 +232,32 @@ class mPCA():
     def get_eigengalaxies(self):
         '''Return the eigengalaxies'''
         return self.eigengalaxies
+    
+    def get_means(self):
+        '''Return the mean galaxy'''
+        return self.pca.mean_.reshape(len(self.data._image_fields[self.particle_type][self._dim]), *self._IMG_SHAPE)
+    
+    def project(self, image):
+        '''Project an image onto the eigengalaxies
+        
+        This function projects an image onto the eigengalaxies. The scores are returned.
+        
+        Parameters:
+        -----------
+        image : np.ndarray
+            Image to project
+        '''
+        return self.pca.transform(image.reshape(1, -1))
+    
+    def reconstruct(self, scores):
+        '''Reconstruct an image from the scores
+        
+        This function reconstructs an image from the scores.
+        
+        Parameters:
+        -----------
+        scores : np.ndarray
+            Scores to reconstruct
+        '''
+        return self.pca.inverse_transform(scores).reshape(len(self.data._image_fields[self.particle_type][self._dim]), *self._IMG_SHAPE)
+    
