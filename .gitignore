@@ -151,7 +151,10 @@ src/megs/data/eigen3d.npy
 
 # Exclude folders
 src/megs/OLD_DATA_package
-src/exp/
 
+*.pkl
+*.txt
+*.pth
 
 src/megs/OLD_DATA_package/*
+exp/results/*
