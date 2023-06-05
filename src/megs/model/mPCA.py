@@ -154,6 +154,10 @@ class mPCA():
         
         field_length = len(self.data._image_fields[self.particle_type][self._dim]) 
         
+        
+        # Check if the image is 2D 
+        if self._dim != "dim2":
+            return
         #Loop over different image fields
         for index,field in enumerate(self.data._image_fields[self.particle_type][self._dim]):
 
