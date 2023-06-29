@@ -155,6 +155,12 @@ src/megs/OLD_DATA_package
 *.pkl
 *.txt
 *.pth
-
+*.mp4
+exp/*.png
+exp/epochs
+exp/*.pdf
+exp/*.mp4
+exp/plots
 src/megs/OLD_DATA_package/*
 exp/results/*
+exp/reconstructed
