@@ -20,4 +20,4 @@ The MEGS software includes preprocessing scripts for galaxy images, PCA computat
 The software requires a Python environment with scientific computing libraries such as `numpy` and `scikit-learn` installed.
 
 For installation, run  
-`?`
+`source setup.sh`
