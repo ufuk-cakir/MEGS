@@ -164,3 +164,15 @@ exp/plots
 src/megs/OLD_DATA_package/*
 exp/results/*
 exp/reconstructed
+
+
+paper/3d
+paper/*.png 
+paper/*.pdf
+paper/*.log
+paper/*.out
+paper/*.pkl
+paper/plots
+paper/rec_err_2d
+paper/rec_err_3d
+paper/*.npy
