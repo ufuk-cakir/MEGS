@@ -494,4 +494,5 @@ def volume(hist ,opacity = .1, isomin = None, isomax = None, surface_count = 30,
     fig.update_layout(scene_xaxis_showticklabels=False,
                   scene_yaxis_showticklabels=False,
                   scene_zaxis_showticklabels=False)
+    
     fig.show()
