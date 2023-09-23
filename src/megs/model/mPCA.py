@@ -4,18 +4,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.decomposition import PCA
 from matplotlib.gridspec import GridSpec
-from ..data import DataLoader
+from ..data import Gamma
 import pickle
 
 class mPCA():
     '''Class to perform a PCA on the data.
     
-    This class is a wrapper around the sklearn PCA class. It allows to perform a PCA on the data loaded by the DataLoader class.
+    This class is a wrapper around the sklearn PCA class. It allows to perform a PCA on the data loaded by the Gamma class.
     
     Parameters:
     -----------
-    data : DataLoader
-        The data to perform the PCA on. The data must be an instance of DataLoader.
+    data : Gamma
+        The data to perform the PCA on. The data must be an instance of Gamma.
     particle_type : str, optional
         The particle type on which to apply the PCA. If None, the first particle type in the dataset is used.
     norm_function : function, optional
@@ -29,7 +29,7 @@ class mPCA():
 
     Examples:
     ---------
-    >>> data = DataLoader("data.hdf5")
+    >>> data = Gamma("data.hdf5")
     >>> pca = mPCA(data, particle_type = "stars",dim=2)
     >>> pca.fit()
     >>> eigengalaxies = pca.get_eigengalaxies()
@@ -43,9 +43,9 @@ class mPCA():
         return x
     
     def __init__(self,data, particle_type = None, norm_function = None, norm_function_kwargs=None, mask = None, dim=2):
-        # Check if data is instance of DataLoader
-        if not isinstance(data, DataLoader):
-            raise ValueError("data must be an instance of DataLoader")
+        # Check if data is instance of Gamma
+        if not isinstance(data, Gamma):
+            raise ValueError("data must be an instance of Gamma")
         
         # Set the particle type on which to apply the PCA (TODO maybe add option to apply PCA on multiple particle types)
         if particle_type is None:

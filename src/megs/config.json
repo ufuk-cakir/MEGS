@@ -5,7 +5,7 @@
     "img_res": 64,
     "plot_factor": 5,
     "path": "./",
-    "halo_ids": "/export/home/ucakir/MEGS/MEGS/src/megs/data/deep_ids_wihtout_corrupt.npy",
+    "halo_ids": "/export/home/ucakir/MEGS/MEGS/src/megs/data/gamma_ids.npy",
     "dim": null,
     "fields": 
                 {
