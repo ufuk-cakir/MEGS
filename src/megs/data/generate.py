@@ -7,7 +7,7 @@ import os
 import numpy as np
 from tqdm import tqdm
 
-from . import Galaxy
+from megs.data import Galaxy
 
 def _create_data_structure(
     n_galaxies,
