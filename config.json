@@ -4,8 +4,8 @@
     "galaxy_parameters": ["mass", "halo_id"],
     "img_res": 64,
     "plot_factor": 5,
-    "path": "./",
-    "halo_ids": "/export/home/ucakir/MEGS/MEGS/src/megs/data/gamma_ids.npy",
+    "path": "/export/data/ucakir",
+    "halo_ids": "/export/home/ucakir/MEGS/MEGS/src/gamma_ids_outlier_removed.npy",
     "dim": null,
     "fields": 
                 {

@@ -76,7 +76,18 @@ def _create_data_structure(
             galaxy_attributes.create_dataset(
                 parameter, shape=(n_galaxies,), maxshape=(None,)
             )
-
+        
+        
+        #Create group to store maximum and minimum image values to rescale the images later
+        image_attributes = galaxies_group.create_group("ImageAttributes")
+        
+        # create min and max group for each field
+        for field in fields:
+            image_attributes.create_group(field)
+            image_attributes[field].create_dataset("min", shape=(n_galaxies,), maxshape=(None,))
+            image_attributes[field].create_dataset("max", shape=(n_galaxies,), maxshape=(None,))
+        
+        
         particles_group = galaxies_group.create_group("Particles")
         # Create the Particle Types group
         for particle_type in particle_types:
