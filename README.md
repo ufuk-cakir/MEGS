@@ -1,23 +1,109 @@
 **Content of the source code documentation**  
+# MEGS: Morphological Evaluation of Galactic Structure
+This project, developed by Ufuk Çakır, introduces the code generate the dataset and evaluate galaxy morphology using Principal Component Analysis.
+The dataset offers detailed 2D maps and 3D cubes of 11 960 galaxies, capturing essential attributes: stellar age, metallicity, and mass. 
 
-1. Name and short description of the software, authors, date of initial development
-1. Main features
-1. Main requirements
-1. Further information:
-    1. [Input examples and explanations, step-by-step tutorial](doc/input.md)
-    1. [More detailed description of scientific approach and input variables reference](doc/method.md)
-    1. [Validity range of the parameters](doc/parameters.md)
-    1. [License, bug tracker, references, citations](doc/further.md)
-    1. [Source code description](doc/sphinxdoc.md) - functions and classes, modules, variables
+*Interdisciplinary Center for Scientific Computing (IWR), Heidelberg University, 09/2023*
 
-## MEGS: Morphological Evaluation of Galactic Structure 
+## Table of Contents
+1. [Download Dataset](#download-dataset)
+2. [Installation](#installation)
+3. [Configuration](#configuration)
+4. [Generation](#generation)
+5. [Data Structure](#data-structure)
+6. [Loading Data](#loading-data)
+7. [PCA Benchmark](#pca-benchmark)
 
-This project, developed by Ufuk Çakir, introduces the MEGS software, designed to execute a PCA-based model for the morphological evaluation of galactic structures.
-*Interdisciplinary Center for Scientific Computing (IWR), Heidelberg University, 06/2023*
+## Download Dataset <a name="download-dataset"></a>
 
-The MEGS software includes preprocessing scripts for galaxy images, PCA computation routines, and modules for the low-dimensional projection of these galaxy images. For usage details, see [input](doc/input.md). The methods are exhaustively described in [method](doc/method.md). More detailed information on the input parameters can be found in [parameters](doc/parameters.md). A detailed source code description is given through the sphinx documentation hosted on [Read the docs](https://megs.readthedocs.io/en/latest/).
+The dataset can be downloaded on [Zenodo](https://zenodo.org/record/8375344).
 
-The software requires a Python environment with scientific computing libraries such as `numpy` and `scikit-learn` installed.
+## Installation <a name="installation"></a>
 
-For installation, run  
+The code loads galaxies from the [IllustrisTNG](https://www.tng-project.org/) suite. For that, the respective python package should be installed:
+
+```
+$ cd ~
+$ git clone https://github.com/illustristng/illustris_python.git
+$ pip install illustris_python/
+```
+Check the [Starting Guide](https://www.tng-project.org/data/docs/scripts/) on the TNG webpage for more information.
+
+For installation of the code, run  
 `source setup.sh`
+
+## Configuration <a name="configuration"></a>
+
+The [config.json](srcs/megs/data/config.json) file contains all the settings nedded to run the data generation. All the configuration should be made there.
+The required fields are:
+- simulation: The simluation from which the data should be generated. Currently only "IllustrisTNG" is supported.
+- "particle_types": The particle type to calculate the images
+- "galaxy_parameters": Additional parameters to be saved for each galaxy.
+- "img_res": Image resolution in each dimension
+- "path": Output Path of the Created HDF5 File
+- "halo_ids": If none, it will do automatic selection of galaxies.
+- "dim": dimension of image , either (2 and/or 3) dimensional
+- "log_M_min": lower Mass cut in log10(M_sun/h)
+- "log_M_max": upper Mass cut in log10(M_sun/h)
+- "fields": Fields to calculate the images. For each field the attributes "mass_weighted" and "normed" define wheter or not to calculate a mass weighted image and to norm or not.
+- "GalaxyArgs": Arguments specified to load galaxy defined in the [Galaxy Class](src/megs/data/galaxy.py)
+
+
+
+## Generation <a name="generation"></a>
+To generate the dataset run
+`source generate_data.sh`
+
+This will select galaxies using the [select_galaxies](src/megs/data/select_galaxies.py) function and save the halo ids in a numpy array.
+Finaly the code runs the [generate.py](src/megs/data/generate.py) code to generate the dataset from the selected galaxies.
+
+## Data Structure <a name="data-structure"></a>
+
+The data will be stored in a HDF5 File in the following way:
+
+![HDF5 File Structure](hdf5_structure.png)
+
+
+## Loading Data <a name="loading-data"></a>
+You can use the `Gamma`class defined in [load.py](src/megs/data/load.py):
+
+```python
+>>> from megs.load import Gamma
+>>> path = "GAMMA.hdf5"
+
+data = Gamma(path)
+```
+
+To get specific data from the Attributes group you can simply call
+
+```python
+>>> data = Gamma("data.hdf5")
+>>> data.get_attribute("mass")  # Get the mass of all galaxies in the dataset
+>>> data.get_attribute("mass", 10)  # Get the mass of the 10th galaxy in the dataset
+```
+
+To get the images you can use:
+
+```python
+>>> image = data.get_image("stars", "Masses", 10) # Get the stars masses image of the 10th galaxy in the dataset
+>>> all_images = data.get_image("stars", "Masses") # Get all stars masses images in the dataset
+```
+## PCA Benchmark<a name="pca-benchmark"></a>
+```python
+>>> from megs.load import Gamma
+>>> path = "GAMMA.hdf5"
+>>> data = Gamma(path)
+>>> from megs.model import mPCA
+>>> model = mPCA(data, dim=2) # Initialize PCA model for two dimensional data
+Creating datamatrix with the following fields:
+ ===============================================
+ Particle type:  stars
+ Fields:  ['GFM_Metallicity', 'GFM_StellarFormationTime', 'Masses']
+ Dimension:  dim2
+ Default arguments are used for the fields that are not specified in the norm_function_kwargs
+ ===============================================
+ Created datamatrix with shape:  (11727, 12288) 
+>>> model.fit(n_components = 60, show_results = True)
+```
+
+
