@@ -1,4 +1,3 @@
-**Content of the source code documentation**  
 # MEGS: Morphological Evaluation of Galactic Structure
 This project, developed by Ufuk Çakır, introduces the code generate the dataset and evaluate galaxy morphology using Principal Component Analysis.
 The dataset offers detailed 2D maps and 3D cubes of 11 960 galaxies, capturing essential attributes: stellar age, metallicity, and mass. 
