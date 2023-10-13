@@ -77,7 +77,7 @@ data = DataLoader(path)
 To get specific data from the Attributes group you can simply call
 
 ```python
->>> data = DataLoader("data.hdf5")
+>>> data = DataLoader("GAMMA.hdf5")
 >>> data.get_attribute("mass")  # Get the mass of all galaxies in the dataset
 >>> data.get_attribute("mass", 10)  # Get the mass of the 10th galaxy in the dataset
 ```
