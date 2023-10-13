@@ -65,19 +65,19 @@ The data will be stored in a HDF5 File in the following way:
 
 
 ## Loading Data <a name="loading-data"></a>
-You can use the `Gamma`class defined in [load.py](src/megs/data/load.py):
+You can use the `DataLoader`class defined in [load.py](src/megs/data/load.py):
 
 ```python
->>> from megs.load import Gamma
+>>> from megs.data import DataLoader
 >>> path = "GAMMA.hdf5"
 
-data = Gamma(path)
+data = DataLoader(path)
 ```
 
 To get specific data from the Attributes group you can simply call
 
 ```python
->>> data = Gamma("data.hdf5")
+>>> data = DataLoader("data.hdf5")
 >>> data.get_attribute("mass")  # Get the mass of all galaxies in the dataset
 >>> data.get_attribute("mass", 10)  # Get the mass of the 10th galaxy in the dataset
 ```
@@ -90,9 +90,9 @@ To get the images you can use:
 ```
 ## PCA Benchmark<a name="pca-benchmark"></a>
 ```python
->>> from megs.load import Gamma
+>>> from megs.data import DataLoader
 >>> path = "GAMMA.hdf5"
->>> data = Gamma(path)
+>>> data = DataLoader(path)
 >>> from megs.model import mPCA
 >>> model = mPCA(data, dim=2) # Initialize PCA model for two dimensional data
 Creating datamatrix with the following fields:
