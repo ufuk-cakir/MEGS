@@ -34,7 +34,7 @@ For installation of the code, run
 
 ## Configuration <a name="configuration"></a>
 
-The [config.json](srcs/megs/data/config.json) file contains all the settings nedded to run the data generation. All the configuration should be made there.
+The [config.json](srcs/megs/config.json) file contains all the settings nedded to run the data generation. All the configuration should be made there.
 The required fields are:
 - simulation: The simluation from which the data should be generated. Currently only "IllustrisTNG" is supported.
 - "particle_types": The particle type to calculate the images
