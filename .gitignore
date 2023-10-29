@@ -176,3 +176,5 @@ paper/plots
 paper/rec_err_2d
 paper/rec_err_3d
 paper/*.npy
+testing*
+.DS_Store
