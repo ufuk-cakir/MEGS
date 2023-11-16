@@ -28,25 +28,25 @@ $ pip install illustris_python/
 ```
 Check the [Starting Guide](https://www.tng-project.org/data/docs/scripts/) on the TNG webpage for more information.
 
-For installation of the code, run  
+For installation of the code in a seperate virtual environment (either `conda` or `venv`), run  
 `source setup.sh`
 
 ## Configuration <a name="configuration"></a>
 
 The [config.json](srcs/megs/config.json) file contains all the settings nedded to run the data generation. All the configuration should be made there.
 The required fields are:
-- simulation: The simluation from which the data should be generated. Currently only "IllustrisTNG" is supported.
-- "particle_types": The particle type to calculate the images
-- "galaxy_parameters": Additional parameters to be saved for each galaxy.
-- "img_res": Image resolution in each dimension
-- "path": Output Path of the Created HDF5 File
-- "halo_ids": If none, it will do automatic selection of galaxies.
-- "dim": dimension of image , either (2 and/or 3) dimensional
-- "log_M_min": lower Mass cut in log10(M_sun/h)
-- "log_M_max": upper Mass cut in log10(M_sun/h)
-- "fields": Fields to calculate the images. For each field the attributes "mass_weighted" and "normed" define wheter or not to calculate a mass weighted image and to norm or not.
-- "GalaxyArgs": Arguments specified to load galaxy defined in the [Galaxy Class](src/megs/data/galaxy.py)
 
+- `simulation`: Specifies the simulation from which the data will be generated. Currently, only `IllustrisTNG` is supported.
+- `particle_types`: Defines the particle type(s) for which the images will be calculated.
+- `galaxy_parameters`: Lists additional parameters to be saved for each galaxy.
+- `img_res`: Sets the image resolution in each dimension.
+- `path`: Indicates the output path for the created HDF5 file.
+- `halo_ids`: Specifies the halo IDs for selection. If set to `none`, the program will automatically select galaxies.
+- `dim`: Determines the dimension of the images, either 2D, 3D, or both.
+- `log_M_min`: Defines the lower mass cut in $\log_{10}(M_\odot/h)$.
+- `log_M_max`: Defines the upper mass cut in $\log_{10}(M_\odot/h)$.
+- `fields`: Specifies the fields for which images will be calculated. For each field, the attributes `mass_weighted` and `normed` determine whether to calculate a mass-weighted image and whether or not to normalize it.
+- `GalaxyArgs`: Contains arguments specified for loading galaxies, as defined in the [Galaxy Class](src/megs/data/galaxy.py).
 
 
 ## Generation <a name="generation"></a>
