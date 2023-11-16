@@ -1,2 +1,2 @@
 from .galaxy import Galaxy
-from .load import DataLoader
+from .load import Gamma
