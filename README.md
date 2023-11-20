@@ -12,6 +12,7 @@ The dataset offers detailed 2D maps and 3D cubes of 11 960 galaxies, capturing e
 5. [Data Structure](#data-structure)
 6. [Loading Data](#loading-data)
 7. [PCA Benchmark](#pca-benchmark)
+8. [Interactive UMAP](#umap)
 
 ## Download Dataset <a name="download-dataset"></a>
 
@@ -104,5 +105,6 @@ Creating datamatrix with the following fields:
  Created datamatrix with shape:  (11727, 12288) 
 >>> model.fit(n_components = 60, show_results = True)
 ```
-
-
+## Interactive UMAP<a name="umap"></a>
+We calculate UMAP on the lower dimensional PCA scores to visualize the eigen space.
+An interactive version of this plot can be accessed through an online [Dashboard](https://umap-dashboard.onrender.com/).
